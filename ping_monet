@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2016-12-05
+# Performs background pings of network devices in net192 & net172 arrays.
+#
+#------------------------------------------------------------------------------
+# Change Log
+# 2017-07-09: updated with DMZ router 172.18.2.1 (SSID aussie-net)
+# 2017-07-11: updated to 192.168.3.x network.
+#------------------------------------------------------------------------------
+
+clear
+
+net192=( 1 2 3 14 )
+net172=( 1 101 105 )
+
+ping_monet () {
+#Function: Performs 3 pings in background of hosts listed in arrays net192 and net172
+
+    for host in "${net192[@]}"; do
+        
+#    	printf "%s\n\n" "pinging 192.168.1.$host"
+        ping -c 3 -q 192.168.3."$host"
+        echo
+    done
+    
+    for host in "${net172[@]}"; do
+        
+#    	printf "%s\n\n" "pinging 172.18.2.$host"
+        ping -c 3 -q 172.18.2."$host"
+        echo
+    done
+    
+return 0
+}
+
+main () {
+#Function: contols execution of script
+
+    ping_monet
+    
+return 0
+}
+
+main
+
