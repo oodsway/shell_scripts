@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+#
+# Author: Woods Wannamaker
+# Date: 2015-12-20
+# Purpose: Performs user choice of system update. Stdout & stderr is sent to both
+# display and log file.
+# 
+#------------------------------------------------------------------------------
+# 2016-11-30: added option for upgrade type
+# 2016-12-09: changed prompt & added exit option
+# 2017-02-06: menu handled with while loop & added final log message
+# 2017-04-05: added menu function; changed script name
+# 2017-04-28: added option [3] aptitude safe-upgrade; removed .sh in filename
+#------------------------------------------------------------------------------
+
+LOG=/home/woods/system_updates/system_update_$(date +%F_%T)
+
+function system_update () {
+# Performs upgrade or dist-upgrade then cleans & removes unnecessary packages
+
+    sudo apt-get update && \
+    sudo apt-get "$1" && \
+    sudo apt-get autoclean  && \
+    sudo apt-get autoremove 
+    printf '\n%s\n\n' "Update complete and archived to: $LOG"
+    
+return 0
+}
+
+function menu () {
+# Displays update menu.
+
+cat << 'EOF'
+--------------------------------------
+        System Update Menu
+--------------------------------------
+
+    [1] Perform apt-get upgrade
+        autoclean
+        autoremove
+
+    [2] Perform apt-get dist-upgrade
+        autoclean
+        autoremove
+        
+    [3] Perform aptitude safe-upgrade
+        
+    [q] Quit
+    
+--------------------------------------
+
+EOF
+
+return 0
+}
+
+function main () {
+# Controls the program flow.
+    
+    clear
+    menu
+    
+    while true; do
+        read -r -p  "Enter Selection: " ANSWER
+        case $ANSWER in
+        
+            # call function & redirect stderr stream (2) to stdout (1) and pipe to tee
+            "1") 
+                system_update "upgrade" 2>&1 | tee -a "$LOG"
+                break
+                ;;
+            "2") 
+                system_update "dist-upgrade" 2>&1 | tee -a "$LOG"
+                break
+                ;;
+            
+            "3") 
+                sudo sudo aptitude safe-upgrade 2>&1 | tee -a "$LOG"
+                printf '\n%s\n\n' "Update complete and archived to: $LOG"
+                break
+                ;;
+            "q")
+                printf '%s\n\n' "Exiting. No changes made..."
+                break
+                ;;
+            *) echo invalid response
+                ;;            
+        esac
+    done
+
+return 0
+}
+main
