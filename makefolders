@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2017-03-20
+# Purpose: create empty test directories for renaming project.
+
+mon_list=( Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec )
+year=2017
+
+for month in "${mon_list[@]}"; do
+    mkdir "$month"_"$year"
+done
+
