@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: before 2016-07-07
+# Purpose: Log smartctl status of system drives. Runs in cron daily.
+
+#--------------------------------------------------------------------------------------
+# Change Log
+# 2016-07-07: Post drive failure. Now creates an array of drives.
+# Report now includes drive information (-i) option.
+# 2016-09-09: Post WD2TB_black drive install. updated drive list to use sort -u option
+# updated shabang header
+# 2016-12-01: changed date format to comply with standards. Shellcheck updates:
+# quoting, use of tee command, printf statement & $divider variable
+# 2017-04-20: updated with block printing; added executive_summary function to capture
+# top-level view of daily status checks.
+#--------------------------------------------------------------------------------------
+
+LOG=/home/woods/SMART/_smart_status_$(date +%F_%T)
+drive_list=( $(mount | awk '/\/dev\/sd/ {print $1}' | sed 's/[0-9]//g' | sort -u) )
+divider="-------------------------------------------------------------------------------------------------"
+
+function get_status () {
+# Obtains smartctl drive info, health, attributes, error & selftest status then writes to logfile.
+
+    for drive in "${drive_list[@]}" ; do
+        {
+        printf '%s\n\n' "********** $drive SMART Status recorded: $(date) **********"
+        sudo smartctl -i -HA -l error -l selftest "$drive"
+        printf '%s\n\n\n' "$divider" 
+        } >> "$LOG" 2> /dev/null
+    done
+    
+return 0
+}
+
+function executive_summary () {
+# Prints and top-level summary of daily smartctl log on desktop.
+
+    smart_sum=/home/woods/Desktop/smartctl_daily_summary.txt
+    
+    if [ -e "$smart_sum" ]; then
+        rm -f "$smart_sum"
+    fi
+    
+    {
+    printf '%s\n\n' "Health Status Info:"
+    egrep -i '\/dev\/sd|errors|passed' "$LOG"
+    printf '\n'
+    awk '/(\/dev\/sd|Reallocated|Pending|Uncorrectable|Power_On|Passed)/ {print $0}' "$LOG"
+    printf '\n%s\n' "Total_LBAs_Written (human readable)"
+    egrep -i 'Total_LBAs_Written' "$LOG" | awk '{print $10*512/1024/1024/1024 " GiB"}'
+    } >> "$smart_sum"
+
+return 0
+}
+
+
+function main () {
+# Controls program flow.
+
+    get_status
+    executive_summary
+    sudo chown woods:woods "$LOG" "$smart_sum"
+    
+return 0
+}
+
+main
+
+
+ 
