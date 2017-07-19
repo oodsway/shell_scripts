@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2016-05-03
+# Purpose: Simulates Data drive rsync synchronization then provides 
+# option to perform synchronization.
+
+#------------------------------------------------------------------------------
+# Change Log
+# 2016-05-26  Added conditional that sets SOURCE & globals only IF Data drive is mounted.
+# Added "/media/woods/Data-" explicit path to search in awk. Results are sorted
+# 2016-05-29 Changed variable name DRIVE_LIST to TARGET_LIST
+# 2016-07-14: replaced sort|uniq with sort -u in creating TARGET_LIST
+# 2016-07-16: Added long form "--append" for tee in sync_control function.
+# 2016-09-21: changed _NOW to standard format of +%F_%T (2016-09-21_%T).
+# & increased RESPONSE_TIME to 600s
+# 2016-09-30: changed EXCLUDE_LIST source file name. Deprecates all previous versions.
+# 2016-09-30: replaced if-block with case & removed RESPONSE_TIME in read. 
+# 2016-10-09: log files removed before exit when nothing to sync
+# 2016-11-13: corrected issues identified by: http://www.shellcheck.net/#
+# added return 0 to functions & remove log files if quit w/o sync
+# 2016-11-20: added until loop to simplify dialog for sync or quit; changed
+# drive_label variable to log_filename
+# 2016-12-19: added SYNCTYPE array for choice of dry-run or rsync. Changed order
+# flags are passed in to sync_control to agree with order of use. All comments 
+# moved to separate lines
+# 2017-02-04: updated case menu with while statement in main(). moved sync complete 
+# message inside clean_files function.
+#------------------------------------------------------------------------------
+
+# Define text colors using tput
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+RESET=$(tput sgr0)
+
+# Store choice of rsync dry-run or rsync in array SYNCTYPE
+SYNCTYPE=( "rsync -n" "rsync " )
+
+# If Data drive is mounted: Define SOURCE, TARGET_LIST, date-time, & EXCLUDE_LIST else EXIT.
+if (mountpoint -q /media/woods/Data); then
+    SOURCE=/media/woods/Data/
+    TARGET_LIST=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
+    _NOW=$(date +%F_%T)
+    EXCLUDE_LIST=/home/woods/rsync/xclude-list.datasync
+else
+    echo "$RED""***** Error Setting Source Drive! Program Terminated! *****""$RESET"
+    exit 1
+fi
+
+clean_files () {
+# Function moves log files to $_NOW folder and archives folder in backups_completed directory
+
+    mkdir /home/woods/rsync/backups_completed/"$_NOW"
+    mv /home/woods/rsync/*"$_NOW" /home/woods/rsync/backups_completed/"$_NOW"
+    echo "$GREEN""Synchronization complete. Log files have been archived.""$RESET" 
+    
+    return 0
+}
+
+sync_control () {
+# Function simulates or processes rsync synchronization with any drives that may be mounted
+
+    # Store a  local copy of TARGET_LIST in mount_list
+    mount_list=( "${TARGET_LIST[@]}" )  
+    for mount_point in "${mount_list[@]}"; do
+        TARGET=$mount_point/
+        # Build log_filename for LOG from TARGET path
+        log_filename=$(echo "$TARGET" | cut -d/ -f4)_$1_$_NOW 
+        
+        LOG=/home/woods/rsync/"${log_filename}"
+        
+        echo "***** $(date -R) *****" > "$LOG"
+        
+        # Terminate if SOURCE drive not mounted. This is an extra check.              
+        if ! (mountpoint -q "$SOURCE"); then       
+            echo "$RED""***** Program Terminated! Primary Source Drive NOT Mounted! *****""$RESET" | tee --append "$LOG"
+            exit  0
+        # If TARGET drive not mounted, continue but log event.
+        elif ! (mountpoint -q "$TARGET"); then                    
+            echo "$YELLOW""***** Excluded  $TARGET  drive NOT Mounted! *****""$RESET" | tee --append "$LOG"
+            echo | tee --append "$LOG"
+        else
+            echo "$GREEN""$2 $TARGET with $SOURCE ""$RESET"
+            
+            ${SYNCTYPE[$3]} -rpgDvOult --progress --delete --modify-window=1 --exclude-from=$EXCLUDE_LIST "$SOURCE" "$TARGET" >> "$LOG"
+ 
+            # Add one space at beginning of each line $LOG for improved display
+            sed -i 's/^/ /g' "$LOG"
+            # Do not display first 2 or last 3 lines of $LOG
+            sed -n 3,$(($(wc -l < "$LOG") - 3))p "$LOG" 
+            echo           
+        fi
+
+        # Exclude any synched or unmounted drives from TARGET_LIST based on length of LOG file
+        if [ "$(egrep -c '^' "$LOG")" -le 5 ]; then                 
+            TARGET_LIST=( ${TARGET_LIST[@]/$mount_point} )
+        fi      
+
+    done  
+    return 0
+}
+
+main () {
+# Function controls overall program flow. Calls sync_control function; displays process messages.
+
+    clear
+    echo "The following target drives will be compared with the source drive: $SOURCE "
+    for mount_point in "${TARGET_LIST[@]}"; do
+        echo "$YELLOW" "$mount_point" "$RESET"
+    done; echo
+    
+# call sync_control with listed options: 0 = rsync -n (--dry-run == simulate) 
+    sync_control sim Simulating 0
+    
+    if [ "${#TARGET_LIST[@]}" -eq 0 ]; then
+        echo "$GREEN""Simulation complete. No Files to Synchronize. Logs removed. Exiting.""$RESET"
+        rm --force /home/woods/rsync/*"$_NOW"
+    else
+        echo "Simulation complete. The following drive(s) need to be synchronized:"
+        for mount_point in "${TARGET_LIST[@]}"; do
+            echo "$YELLOW" "$mount_point" "$RESET"
+        done; echo
+        
+        while true; do
+            read -r -p "Enter [YES] to Sync or [q] to Quit: " ANSWER
+            case $ANSWER in
+                "YES")
+# call sync_control with listed options: 1 = rsync (perform sychronization)
+                    sync_control sync Synchronizing 1                
+                    clean_files 
+                    break
+                    ;;
+                "q")
+                    echo; echo "$YELLOW""***** Process Aborted by User *****" "$RESET"
+                    rm --force /home/woods/rsync/*"$_NOW"
+                    break
+                    ;;
+                *) echo invalid response;;
+            esac
+        done
+    fi
+    
+    return 0
+}
+main

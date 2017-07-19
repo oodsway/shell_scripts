@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: before 2016-05-22
+# Purpose: Simulates & reports Data drive files to sync with Data-2, -3, -4, -ext
+# (if mounted). Runs in cron to create an hourly report.
+
+#------------------------------------------------------------------------------
+# Change Log
+# 2016-05-22 updated according to datasync script changes made this date.
+# 2016-05-29 updated to check source mount and exit if not mounted
+# 2016-09-30: changed EXCLUDE_LIST source file name. Updated with conditional
+# to check if Data source is mounted at start and exit if not.
+# 2016-11-14: updated with fixes from shellcheck 
+# 2017-04-03: changed exit code to 1 from 0 on Source not found error. Explicit
+# use of function in sync_control definition.
+#------------------------------------------------------------------------------
+
+if (mountpoint -q /media/woods/Data); then
+    EXCLUDE_LIST=/home/woods/rsync/xclude-list.datasync
+    SOURCE=/media/woods/Data/
+    drive_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
+    LOG=/home/woods/rsync/_data-files-to-sync
+    echo "***** $(date -R) *****" > "$LOG"
+    echo >> "$LOG"
+else
+    echo "***** Program Terminated! Primary Source Drive NOT Mounted! *****"
+    exit 1
+fi
+
+function sync_control () {
+# Simulates & reports synchronization of primary Data drive with the drive name in list.
+
+    for mount_point in "${drive_list[@]}"; do
+        TARGET=$mount_point/
+    
+        if ! (mountpoint -q "$SOURCE"); then
+            echo "***** Program Terminated! Primary Source Drive NOT Mounted! *****" >> "$LOG"
+            exit
+        elif ! (mountpoint -q "$TARGET"); then
+            echo "***** $TARGET Excluded. Drive NOT Mounted! *****" >> "$LOG"
+            echo >> "$LOG"    
+        else
+            echo "Data drive files to sync with $TARGET" >> "$LOG"
+            rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=$EXCLUDE_LIST "$SOURCE" "$TARGET" >> "$LOG"
+            echo >> "$LOG"
+        fi
+    done
+    return 0
+}
+
+sync_control
