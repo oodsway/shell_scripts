@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: before 2016-12-01
+# Purpose: Performs virus scan of system (with exclusions) and writes 
+# results to LOG file. Runs in cron:  ~$ sudo crontab -l to see schedule.
+#
+#------------------------------------------------------------------------------
+# Change Log
+# 2016-12-01: shellcheck updates. changed date format to standard.
+# 2017-02-04: simplified exclusions by using proper REGEX format: w/ quotes
+# 2017-03-23: LOG defined in one-line; printf to LOG using {cmd;cmd} &
+# stderr sent to dev/null; removed function main & call scan directly.
+# 2017-06-06: removed --bell option.
+#------------------------------------------------------------------------------
+
+LOG=/home/woods/clamscan/_av_scan_$(date +%F_%T)
+
+function scan_system () {
+# Performs virus scan of system (with exclusions) and writes results to LOG file.
+    {
+    printf '%s\n\n' "Scan started: $(date)"
+    tail /var/log/clamav/freshclam.log
+    sudo clamscan -ir / --exclude-dir='^/(media|sys|dev|proc)'
+    printf '\n%s\n\n'  "Scan completed: $(date)"
+    } >> "$LOG" 2> /dev/null
+return 0
+}
+
+scan_system
