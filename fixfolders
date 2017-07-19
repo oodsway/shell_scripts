@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2017-03-20
+# Purpose: to rename folders in digital-media directory from 3-letter-month_year 
+# to YYYY-MM format (e.g. Apr_2015 to 2015-04) for years 1999 to 2017 on 5
+# disc drives.
+
+# 2017-03-21: completed renaming this date. Verified results by sdiff comparison 
+# of simulate (-n) file and renamed file & by rsync comparison of drives & by 
+# spot verification of media files.
+
+LOG=$(pwd)/renamed_$(date +%F_%T).txt
+touch "$LOG"
+
+months=( "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec" )
+month_nums=( "01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" )
+drives=( "Data" "Data-2" "Data-3" "Data-4" "Data-ext" )
+years=( {2017..1999} )
+
+function rename_dirs () {
+
+    path=/media/woods/$1/digital_media/$2/
+    for i in "${!months[@]}"; do
+        mo="${months[$i]}"
+        mo_num="${month_nums[$i]}"
+        find "$path" -maxdepth 1 -type d -iname "$mo""*" -printf "%p\n" | xargs rename -n 's/'"$mo"'_(\d{4})/$1-'"$mo_num"'/' {}\; >> "$LOG"
+    done
+
+return 0
+}
+
+for year in "${years[@]}"; do
+    echo "$year" >> "$LOG"
+    for drive in "${drives[@]}"; do
+        rename_dirs "$drive" "$year"
+    done
+    echo >> "$LOG"
+done
+                                                                           
