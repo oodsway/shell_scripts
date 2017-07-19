@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2016-09-11
+# Purpose: Script for deleting old, unused kernel images, inspired by NixCraft's blog
+# http://www.cyberciti.biz/faq/debian-ubuntu-linux-delete-old-kernel-images-command/
+#
+#------------------------------------------------------------------------------
+# Change Log
+# 2016-09-15: re-wrote original code with while-loop based on length of list.
+# 2016-09-16-v2: kernel variable added to get last entry to print, removed -t flag
+# in read command to simplify logic block- was unnecessary.
+# Substitued case command instead of conditional block in previous version.
+# 2016-09-23: chaged get_kernels function format
+# 2016-12-06: restored get_kernels function format. Checked code using shellcheck.
+# Added array remove_list which contains list of kerenels to purge. Restructured
+# the case-block & added new case-block for purge. Improved printing format.
+# 2016-12-06-2: re-structured with main function. Added select_kernels function
+# Choice to remove ALL, SELECTED or EXIT
+# 2016-12-15: added ANSI color format print statements from climagic video.
+# https://en.wikipedia.org/wiki/ANSI_escape_code#Platform_support
+# 2016-12-19: added variables for ANSI color control
+# 2017-01-03: added keep_list; colorized selection display; added status_report
+# function; added final choice to proceed or abort
+# 2017-02-03: Improved main() while loops and case menus. Added YELLOW color.
+# 2017-02-06: fixed fail to exit issue. remove list appears first in status_report
+# menus are consistent for quit selection.
+#------------------------------------------------------------------------------
+
+clear
+
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+MAGENTA="\033[0;35m"
+CYAN="\033[0;36m"
+RESET="\033[0m"
+
+get_kernels () {
+# Function. Creates list of either rc or ii kernel images depending on value of $1
+
+dpkg --list | egrep -i 'linux-image|linux-image-extra|linux-headers' | egrep "$1" | awk '{print $2}'
+return 0
+}
+
+ii_kernel_list=( $(get_kernels "^ii") )
+rc_kernel_list=( $(get_kernels "^rc") )
+
+if [ ${#rc_kernel_list[@]} = 0 ]; then
+    printf "\n$RED%s$RESET\n\n" "No rc kernels to process! Exiting..."
+    exit 0   
+fi
+
+current_kernel=$( uname -a | awk '{print $3}' )
+remove_list=( )
+keep_list=( )
+
+printf "%s\n" "List of installed (ii) kernels (${#ii_kernel_list[@]} items) DO NOT REMOVE:" 
+printf "$RED%-40s %-40s %-40s$RESET\n" "${ii_kernel_list[@]}"
+printf "\n"
+printf "%s" "The current kernel is: " "$current_kernel"
+printf "\n\n%s\n" "List of remove/deinstall (rc) kernels (${#rc_kernel_list[@]} items) SAFE TO REMOVE:"
+printf "$GREEN%-40s %-40s %-40s$RESET\n" "${rc_kernel_list[@]}"
+printf "\n"
+
+status_report () {
+# Function. Displays lists status to screen.
+
+    printf "%s\n" "Remove list contains ${#remove_list[@]} items: "
+    printf "$MAGENTA%-40s %-40s %-40s$RESET\n"  "${remove_list[@]}"
+    printf "\n"
+    
+    printf "%s\n" "Keep list contains ${#keep_list[@]} items: "
+    printf "$CYAN%-40s %-40s %-40s$RESET\n"  "${keep_list[@]}"
+    printf "\n"
+
+    printf "%s\n" "Remaining list contains ${#rc_kernel_list[@]} items:"
+    printf "$GREEN%-40s %-40s %-40s$RESET\n" "${rc_kernel_list[@]}"
+    printf "\n"
+    
+    return 0
+}
+
+select_kernels () {
+# Function. User selects individual kernels to remove. Can list, finish or quit
+# or quit process completely.
+
+i=0; j=0
+while (( ${#rc_kernel_list[@]} > j )); do
+    kernel=${rc_kernel_list[$i]}
+    
+    read -r -p "Select (r)emove; (k)eep; (l)ist; (f)inish; (q)uit for:  $( printf "$YELLOW%s$RESET"  "$kernel" ): " answer
+        case $answer in
+            "r")
+                remove_list=( "${remove_list[@]}" "$kernel" )
+                rc_kernel_list=( ${rc_kernel_list[@]/$kernel} )
+                printf "$MAGENTA%s$RESET\n" " $kernel added to the remove list"
+                ;;
+            "k")
+                keep_list=( "${keep_list[@]}" "$kernel" )
+                rc_kernel_list=( ${rc_kernel_list[@]/$kernel} )
+                printf "$CYAN%s$RESET\n" " $kernel added to the keep list"
+                ;;
+            "l")
+                clear
+                status_report
+                ;;
+            "q")
+                echo "...exiting. ${#rc_kernel_list[@]} kernels remain in the list."
+                exit 0
+                ;;
+            "f")
+                j=${#rc_kernel_list[@]}
+                ;;
+            *) clear; echo invalid option;;
+        esac 
+        
+    kernels_to_consider=$(( ${#rc_kernel_list[@]} - j))
+    printf "%s\n\n" "...${#rc_kernel_list[@]} remain in the list, $kernels_to_consider kernels remain to consider."
+done
+return 0
+}
+
+main () {
+#Function. Controls removal of ALL or SELECTED kernels or EXIT of program. 
+
+while true; do
+    read -r -p "Remove (a)ll | (s)elected rc kernels or (q)uit: " choice    
+    case $choice in
+        "a")  
+            clear
+            sudo apt-get --purge remove "${rc_kernel_list[@]}"
+            exit 0
+            ;;        
+        "s") 
+            clear
+            select_kernels
+            if [ ${#remove_list[@]} = 0 ]; then
+                printf "$GREEN%s$RESET\n\n" "Nothing to purge. Exiting..."
+            else
+                clear
+                status_report
+                while true; do
+                read -r -p "Enter (Y)es to remove | (q) to quit | (p)revious menu: " option
+                case $option in
+                    "Y")                
+                        sudo apt-get --purge remove "${remove_list[@]}"
+                        exit 0
+                        ;;
+                    "q")
+                        printf "$GREEN%s$RESET\n\n" "No changes made. Exiting..."
+                        exit 0
+                        ;;
+                    "p")
+                        printf "$GREEN%s$RESET\n\n" "Returning to previous menu..."
+                        select_kernels
+                        ;;
+                    *)  echo invalid option;;
+                esac
+                done
+            fi
+            ;;
+        "q")
+            printf "$GREEN%s$RESET\n\n" "No changes made. Exiting..."
+            break
+            ;;
+        *) echo invalid option;;
+    esac
+done
+}
+
+main
