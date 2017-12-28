@@ -19,7 +19,7 @@ net2="192.168.3"
 hosts2=( 1 2 3 14 )
 
 ping_monet () {
-#Function: Performs 3 pings in background of hosts listed in arrays net192 and net10
+#Function: Performs 3 pings in background for each net.host
 
     ping -c 3 -q 8.8.8.8
     echo
