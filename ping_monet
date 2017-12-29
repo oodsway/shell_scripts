@@ -2,39 +2,31 @@
 
 # Author: Woods Wannamaker
 # Date: 2016-12-05
-# Performs background pings of network devices using arrays of network hosts.
+# Purpose: Performs background pings of network devices. 
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2017-07-09: updated with DMZ router 172.18.2.1 (SSID aussie-net)
-# 2017-07-11: updated to 192.168.3.x network.
-# 2017-12-28: updated DMZ to 10.0.0.x & included ping of google and simplified
+# 2017-07-09: 172.18.2.x added to network
+# 2017-07-11: 192.168.3.x added to network
+# 2017-12-28: removed 172.x.x.x.; 10.x.x.x & ping of google added
+# 2017-12-29: generalized with one loop & passing net and hosts to function
 #------------------------------------------------------------------------------
 
 clear
 
-net1="10.0.0"
-hosts1=( 1 10 105 )
-net2="192.168.3"
-hosts2=( 1 2 3 14 )
-
 ping_monet () {
 #Function: Performs 3 pings in background for each net.host
 
-    ping -c 3 -q 8.8.8.8
     echo
-    
-    for host in "${hosts1[@]}"; do
-        ping -c 3 -q "$net1.$host"
-        echo
-    done
-    
-    for host in "${hosts2[@]}"; do
-        ping -c 3 -q "$net2.$host"
+    for host in $2; do
+        ping -c 3 -q "$1.$host"
         echo
     done
     
 return 0
 }
 
-ping_monet
+ping -c 3 -q 8.8.8.8
+ping_monet "10.0.0" "1 10 105" 
+ping_monet "192.168.3" "1 2 3 14"
+
