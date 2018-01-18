@@ -128,7 +128,7 @@ main () {
             case $ANSWER in
                 "YES")
 # call sync_control with listed options: 1 = rsync (perform sychronization)
-                    sync_control sync Synchronizing 0                
+                    sync_control sync Synchronizing 1                
                     clean_files 
                     break
                     ;;
