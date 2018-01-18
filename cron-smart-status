@@ -14,6 +14,7 @@
 # quoting, use of tee command, printf statement & $divider variable
 # 2017-04-20: updated with block printing; added executive_summary function to capture
 # top-level view of daily status checks.
+# 2018-01-18: egrep replaced with grep -E
 #--------------------------------------------------------------------------------------
 
 LOG=/home/woods/SMART/_smart_status_$(date +%F_%T)
@@ -45,11 +46,11 @@ function executive_summary () {
     
     {
     printf '%s\n\n' "Health Status Info:"
-    egrep -i '\/dev\/sd|errors|passed' "$LOG"
+    grep -Ei '\/dev\/sd|errors|passed' "$LOG"
     printf '\n'
     awk '/(\/dev\/sd|Reallocated|Pending|Uncorrectable|Power_On|Passed)/ {print $0}' "$LOG"
     printf '\n%s\n' "Total_LBAs_Written (human readable)"
-    egrep -i 'Total_LBAs_Written' "$LOG" | awk '{print $10*512/1024/1024/1024 " GiB"}'
+    grep -Ei 'Total_LBAs_Written' "$LOG" | awk '{print $10*512/1024/1024/1024 " GiB"}'
     } >> "$smart_sum"
 
 return 0
