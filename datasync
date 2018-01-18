@@ -26,6 +26,7 @@
 # moved to separate lines
 # 2017-02-04: updated case menu with while statement in main(). moved sync complete 
 # message inside clean_files function.
+# 2018-01-18: egrep replaced with grep -E
 #------------------------------------------------------------------------------
 
 # Define text colors using tput
@@ -93,7 +94,7 @@ sync_control () {
         fi
 
         # Exclude any synched or unmounted drives from TARGET_LIST based on length of LOG file
-        if [ "$(egrep -c '^' "$LOG")" -le 5 ]; then                 
+        if [ "$(grep -Ec '^' "$LOG")" -le 5 ]; then
             TARGET_LIST=( ${TARGET_LIST[@]/$mount_point} )
         fi      
 
@@ -127,7 +128,7 @@ main () {
             case $ANSWER in
                 "YES")
 # call sync_control with listed options: 1 = rsync (perform sychronization)
-                    sync_control sync Synchronizing 1                
+                    sync_control sync Synchronizing 0                
                     clean_files 
                     break
                     ;;
@@ -144,3 +145,5 @@ main () {
     return 0
 }
 main
+
+
