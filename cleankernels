@@ -26,6 +26,9 @@
 # 2017-02-06: fixed fail to exit issue. remove list appears first in status_report
 # menus are consistent for quit selection.
 # 2018-01-18: egrep replaced with grep -E. Regex simplified.
+# 2018-01-18: awk one-liner replaces 2 grep & one awk. uname -r used to get cuurent_kernel
+# Installed kernels shown in green if rc list empty before exit. remove and keep lists
+# created when rc_kernel_list not empty.
 #------------------------------------------------------------------------------
 
 clear
@@ -38,9 +41,10 @@ CYAN="\033[0;36m"
 RESET="\033[0m"
 
 get_kernels () {
-# Function. Creates list of either rc or ii kernel images depending on value of $1
+# Function. Creates list of either installed (ii) or removed (rc) kernel images depending
+# on value of status variable $1 passed to function.
 
-dpkg --list | grep -Ei 'linux-(image|image-extra|headers)' | grep -Ei "$1" | awk '{print $2}'
+    dpkg --list | awk -v status="$1" '/linux-(image|image-extra|headers)/ {if ($1 ~ status) {print $2} }'
 
 return 0
 }
@@ -49,13 +53,17 @@ ii_kernel_list=( $(get_kernels "^ii") )
 rc_kernel_list=( $(get_kernels "^rc") )
 
 if [ ${#rc_kernel_list[@]} = 0 ]; then
+    printf "%s\n" "List of installed (ii) kernels (${#ii_kernel_list[@]} items) DO NOT REMOVE:" 
+    printf "$GREEN%-40s %-40s %-40s$RESET\n" "${ii_kernel_list[@]}"
+    printf "\n"
+    
     printf "\n$RED%s$RESET\n\n" "No rc kernels to process! Exiting..."
-    exit 0   
+    exit 0
+else
+    current_kernel=$( uname -r )
+    remove_list=( )
+    keep_list=( )
 fi
-
-current_kernel=$( uname -a | awk '{print $3}' )
-remove_list=( )
-keep_list=( )
 
 printf "%s\n" "List of installed (ii) kernels (${#ii_kernel_list[@]} items) DO NOT REMOVE:" 
 printf "$RED%-40s %-40s %-40s$RESET\n" "${ii_kernel_list[@]}"
