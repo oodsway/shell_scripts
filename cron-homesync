@@ -3,12 +3,15 @@
 # Author: Woods Wannamaker
 # Date: 2016-05-20
 # Purpose: Reports home directory files that need to be synch'd. Runs in cron
-# to create an hourly report.
+# to create an hourly report based on the following one-liner:
+#
+# rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=/home/woods/rsync/xclude-list.homesync /home/woods/ /media/woods/Misc/home_sync/ | grep -Ev '/$'
 
 #------------------------------------------------------------------------------
 # Change Log
 # 2016-09-30: changed EXCLUDE_LIST source file name. 
-# 2016-11-14: updated with fixes from shellcheck 
+# 2016-11-14: updated with fixes from shellcheck
+# 2018-01-18: egrep replaced with grep -E
 #------------------------------------------------------------------------------
 
 EXCLUDE_LIST=/home/woods/rsync/xclude-list.homesync
@@ -19,6 +22,4 @@ LOG=/home/woods/rsync/_home-files-to-sync
 echo "***** $(date -R) *****" > "$LOG"
 echo >> "$LOG"
 
-# rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=/home/woods/rsync/xclude-list.homesync /home/woods/ /media/woods/Misc/home_sync/ | egrep -v '/$'
-
-rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=$EXCLUDE_LIST "$SOURCE" "$TARGET" | egrep -v '/$' >> "$LOG"
+rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=$EXCLUDE_LIST "$SOURCE" "$TARGET" | grep -Ev '/$' >> "$LOG"
