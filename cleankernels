@@ -25,6 +25,7 @@
 # 2017-02-03: Improved main() while loops and case menus. Added YELLOW color.
 # 2017-02-06: fixed fail to exit issue. remove list appears first in status_report
 # menus are consistent for quit selection.
+# 2018-01-18: egrep replaced with grep -E. Regex simplified.
 #------------------------------------------------------------------------------
 
 clear
@@ -39,7 +40,8 @@ RESET="\033[0m"
 get_kernels () {
 # Function. Creates list of either rc or ii kernel images depending on value of $1
 
-dpkg --list | egrep -i 'linux-image|linux-image-extra|linux-headers' | egrep "$1" | awk '{print $2}'
+dpkg --list | grep -Ei 'linux-(image|image-extra|headers)' | grep -Ei "$1" | awk '{print $2}'
+
 return 0
 }
 
