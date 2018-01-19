@@ -10,13 +10,14 @@
 # 2017-06-04: deprecated previous version that writes tarlog since the same info is
 # available via: tar -ztvpf filename.tar.gz. Added check for target mount.
 # Renamed functions. Reworked tar command to remove /home/woods/ path.
-#
+# 2018-01-19: simplified clean up. EXCLUDE_LIST path changed. && added in main()
+# to move only after create() succeeds.
 #------------------------------------------------------------------------------
 
 if (mountpoint -q /media/woods/Misc); then
     _NOW=$(date +%F_%H%M%S)
     ark_path=/media/woods/Misc/home_targzip
-    clean_path=/media/woods/Misc/_ark-clean_"$_NOW"
+    clean_path=/media/woods/Misc/
 else
     printf "\n%s\n\n" "Target drive not mounted! Exiting..."
     exit 1
@@ -26,19 +27,17 @@ function create_new_home_ark () {
 # Creates archive of home directory by cd to /home/woods then tar with exclusions
 
     ark_file="$ark_path"/woods-home_"$_NOW".tar.gz
-    xclude_list=/home/woods/tar/home_tgz_xclude
-    cd /home/woods && tar -X "$xclude_list" -zcpf "$ark_file" ./*
+    EXCLUDE_LIST=/home/woods/xclude-lists/xclude-home_tgz.txt
+    cd /home/woods && tar -X "$EXCLUDE_LIST" -czpf "$ark_file" ./*
     
 return 0
 }
 
 function remove_oldest_home_ark () {
-# Determines oldest archive date & moves any files with that date to folder to be reviewed 
-# and later deleted with rm -rf _ark-clean_date_time
+# Determines oldest & moves to clean_path to be reviewed before removal.
 
-    mkdir "$clean_path"   
-    clean_date=$(find "$ark_path" -type f -printf '%P\n'| sort | head -1 | cut -d_ -f2-3 | cut -d. -f1)
-    mv "$ark_path"/*"$clean_date"* "$clean_path"/
+    clean_file=$(find "$ark_path" -type f -printf '%P\n'| sort | head -1)
+    mv "$ark_path"/"$clean_file" "$clean_path"
     
 return 0
 }
@@ -46,7 +45,7 @@ return 0
 function main () {
 # Program entry point. Calls other functions to create new archive and remove oldest.
 
-    create_new_home_ark
+    create_new_home_ark &&
     remove_oldest_home_ark
     
 return 0
