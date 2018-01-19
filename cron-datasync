@@ -14,13 +14,14 @@
 # 2016-11-14: updated with fixes from shellcheck 
 # 2017-04-03: changed exit code to 1 from 0 on Source not found error. Explicit
 # use of function in sync_control definition.
+# 2018-01-19: updated LOG file path and EXCLUDE_LIST path
 #------------------------------------------------------------------------------
 
 if (mountpoint -q /media/woods/Data); then
-    EXCLUDE_LIST=/home/woods/rsync/xclude-list.datasync
+    EXCLUDE_LIST=/home/woods/xclude-lists/xclude-datasync.txt
     SOURCE=/media/woods/Data/
     drive_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
-    LOG=/home/woods/rsync/_data-files-to-sync
+    LOG=/home/woods/_data-files-to-sync
     echo "***** $(date -R) *****" > "$LOG"
     echo >> "$LOG"
 else
