@@ -12,12 +12,13 @@
 # 2016-09-30: changed EXCLUDE_LIST source file name. 
 # 2016-11-14: updated with fixes from shellcheck
 # 2018-01-18: egrep replaced with grep -E
+# 2018-01-19: updated LOG file path and EXCLUDE_LIST path.
 #------------------------------------------------------------------------------
 
-EXCLUDE_LIST=/home/woods/rsync/xclude-list.homesync
+EXCLUDE_LIST=/home/woods/xclude-lists/xclude-homesync.txt
 SOURCE=/home/woods/
 TARGET=/media/woods/Misc/home_sync/
-LOG=/home/woods/rsync/_home-files-to-sync
+LOG=/home/woods/_home-files-to-sync
 
 echo "***** $(date -R) *****" > "$LOG"
 echo >> "$LOG"
