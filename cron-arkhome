@@ -34,10 +34,12 @@ return 0
 }
 
 function remove_oldest_home_ark () {
-# Determines oldest & moves to clean_path to be reviewed before removal.
+# Determines oldest archirve & moves to clean_path for user review.
 
     clean_file=$(find "$ark_path" -type f -printf '%P\n'| sort | head -1)
-    mv "$ark_path"/"$clean_file" "$clean_path"
+    if [ -d "$clean_path" ]; then
+        mv "$ark_path"/"$clean_file" "$clean_path"
+    fi
     
 return 0
 }
