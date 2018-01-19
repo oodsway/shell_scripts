@@ -27,6 +27,7 @@
 # 2017-02-04: updated case menu with while statement in main(). moved sync complete 
 # message inside clean_files function.
 # 2018-01-18: egrep replaced with grep -E
+# 2018-01-19: updated LOG file path, EXCLUDE_LIST path and clean_files paths
 #------------------------------------------------------------------------------
 
 # Define text colors using tput
@@ -43,7 +44,7 @@ if (mountpoint -q /media/woods/Data); then
     SOURCE=/media/woods/Data/
     TARGET_LIST=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
     _NOW=$(date +%F_%T)
-    EXCLUDE_LIST=/home/woods/rsync/xclude-list.datasync
+    EXCLUDE_LIST=/home/woods/xclude-lists/xclude-datasync.txt
 else
     echo "$RED""***** Error Setting Source Drive! Program Terminated! *****""$RESET"
     exit 1
@@ -52,8 +53,8 @@ fi
 clean_files () {
 # Function moves log files to $_NOW folder and archives folder in backups_completed directory
 
-    mkdir /home/woods/rsync/backups_completed/"$_NOW"
-    mv /home/woods/rsync/*"$_NOW" /home/woods/rsync/backups_completed/"$_NOW"
+    mkdir /home/woods/backup_log-files/backups_completed/"$_NOW"
+    mv /home/woods/backup_log-files/*"$_NOW" /home/woods/backup_log-files/backups_completed/"$_NOW"
     echo "$GREEN""Synchronization complete. Log files have been archived.""$RESET" 
     
     return 0
@@ -69,7 +70,7 @@ sync_control () {
         # Build log_filename for LOG from TARGET path
         log_filename=$(echo "$TARGET" | cut -d/ -f4)_$1_$_NOW 
         
-        LOG=/home/woods/rsync/"${log_filename}"
+        LOG=/home/woods/backup_log-files/"${log_filename}"
         
         echo "***** $(date -R) *****" > "$LOG"
         
@@ -116,7 +117,7 @@ main () {
     
     if [ "${#TARGET_LIST[@]}" -eq 0 ]; then
         echo "$GREEN""Simulation complete. No Files to Synchronize. Logs removed. Exiting.""$RESET"
-        rm --force /home/woods/rsync/*"$_NOW"
+        rm -f /home/woods/backup_log-files/*"$_NOW"
     else
         echo "Simulation complete. The following drive(s) need to be synchronized:"
         for mount_point in "${TARGET_LIST[@]}"; do
@@ -128,13 +129,13 @@ main () {
             case $ANSWER in
                 "YES")
 # call sync_control with listed options: 1 = rsync (perform sychronization)
-                    sync_control sync Synchronizing 1                
+                    sync_control sync Synchronizing 1               
                     clean_files 
                     break
                     ;;
                 "q")
                     echo; echo "$YELLOW""***** Process Aborted by User *****" "$RESET"
-                    rm --force /home/woods/rsync/*"$_NOW"
+                    rm -f /home/woods/backup_log-files/*"$_NOW"
                     break
                     ;;
                 *) echo invalid response;;
