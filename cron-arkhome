@@ -11,13 +11,13 @@
 # available via: tar -ztvpf filename.tar.gz. Added check for target mount.
 # Renamed functions. Reworked tar command to remove /home/woods/ path.
 # 2018-01-19: simplified clean up. EXCLUDE_LIST path changed. && added in main()
-# to move only after create() succeeds.
+# to move only after create() succeeds. Added _ark-clean dir to clean_path after tests.
 #------------------------------------------------------------------------------
 
 if (mountpoint -q /media/woods/Misc); then
     _NOW=$(date +%F_%H%M%S)
     ark_path=/media/woods/Misc/home_targzip
-    clean_path=/media/woods/Misc/
+    clean_path=/media/woods/Misc/_ark-clean/
 else
     printf "\n%s\n\n" "Target drive not mounted! Exiting..."
     exit 1
