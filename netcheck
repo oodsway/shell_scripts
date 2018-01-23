@@ -7,7 +7,7 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2018-01-23: fork of ping_monet, modified based on the following article:
+# 2018-01-23: Modification of ping_monet based on the article by Steve Parker:
 # https://www.shellscript.sh/tips/ping/
 #------------------------------------------------------------------------------
 
