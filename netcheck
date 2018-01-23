@@ -28,7 +28,7 @@ echo
 return 0
 }
 
-net_check "10.0.0" "$(seq 1 254)" 
-net_check "192.168.3" "$(seq 1 254)"
+net_check "10.0.0" "$(seq 0 254)" 
+net_check "192.168.3" "$(seq 0 254)"
 net_check "8.8.8" "8"
 
