@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#! /usr/bin/env bash
 
 # Author: Woods Wannamaker
 # Date: before 2016-05-22
@@ -15,39 +15,53 @@
 # 2017-04-03: changed exit code to 1 from 0 on Source not found error. Explicit
 # use of function in sync_control definition.
 # 2018-01-19: updated LOG file path and EXCLUDE_LIST path
+# 2018-02-08: Initial logic restructured. Exit with error codes updated. Block
+# print to LOG file. Check for exculde list added.
 #------------------------------------------------------------------------------
 
-if (mountpoint -q /media/woods/Data); then
-    EXCLUDE_LIST=/home/woods/xlists/x-datasync
-    SOURCE=/media/woods/Data/
-    drive_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
-    LOG=/home/woods/_data-files-to-sync
-    echo "***** $(date -R) *****" > "$LOG"
-    echo >> "$LOG"
-else
-    echo "***** Program Terminated! Primary Source Drive NOT Mounted! *****"
+if ! (mountpoint -q /media/woods/Data); then
+    printf "\n%s\n\n" "***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
     exit 1
+else
+    SOURCE=/media/woods/Data/
+    LOG=/home/woods/_data-files-to-sync
+    EXCLUDE_LIST=/home/woods/xlists/x-datasync
+    
+    if ! [[ -f "$EXCLUDE_LIST" ]]; then
+        printf "\n%s\n\n" "Exclusion list not found! Exiting...with error code: 2"
+        exit 2
+    fi
+    
+    drive_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
+
+    printf "%s\n\n" "***** $(date -R) *****" > "$LOG"
 fi
 
 function sync_control () {
-# Simulates & reports synchronization of primary Data drive with the drive name in list.
+# Simulates & reports synchronization of SOURCE drive with TARGET drive in drive_list.
 
-    for mount_point in "${drive_list[@]}"; do
-        TARGET=$mount_point/
+    {
     
+    for mount_point in "${drive_list[@]}"; do
+    
+        TARGET=$mount_point/
+        
         if ! (mountpoint -q "$SOURCE"); then
-            echo "***** Program Terminated! Primary Source Drive NOT Mounted! *****" >> "$LOG"
-            exit
+            printf "\n%s\n\n" "***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
+            exit 1
         elif ! (mountpoint -q "$TARGET"); then
-            echo "***** $TARGET Excluded. Drive NOT Mounted! *****" >> "$LOG"
-            echo >> "$LOG"    
+            printf "\n\n%s\n\n" "***** $TARGET Excluded. Drive NOT Mounted! *****"
         else
-            echo "Data drive files to sync with $TARGET" >> "$LOG"
-            rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=$EXCLUDE_LIST "$SOURCE" "$TARGET" >> "$LOG"
-            echo >> "$LOG"
+            printf "%s\n\n" "Data drive files to sync with $TARGET"
+            rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=$EXCLUDE_LIST "$SOURCE" "$TARGET"
+            printf "%s\n\n"
         fi
+        
     done
-    return 0
+    
+    } >> "$LOG"
+    
+return 0
 }
 
 sync_control
