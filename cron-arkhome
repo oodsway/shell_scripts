@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#! /usr/bin/env bash
 
 # Author: Woods Wannamaker
 # Date: 2017-06-04
@@ -11,44 +11,55 @@
 # available via: tar -ztvpf filename.tar.gz. Added check for target mount.
 # Renamed functions. Reworked tar command to remove /home/woods/ path.
 # 2018-01-19: simplified clean up. EXCLUDE_LIST path changed. && added in main()
-# to move only after create() succeeds. Added _ark-clean dir to clean_path after tests.
+# to move only after create() succeeds. Added _ark-clean dir to clean_path after
+# tests.
+# 2018-02-08: check for EXCLUDE_LIST and clean_path at start; list reside in 
+# xlists & renamed. Initial logic restructured: if no drive, quit; if no list,
+# quit; if no clean_path, create. Functions renamed.
 #------------------------------------------------------------------------------
 
-if (mountpoint -q /media/woods/Misc); then
+if ! (mountpoint -q /media/woods/Misc); then
+    printf "\n%s\n\n" "Target drive not mounted! Exiting...with error code: 1"
+    exit 1
+else
     _NOW=$(date +%F_%H%M%S)
     ark_path=/media/woods/Misc/home_targzip
     clean_path=/media/woods/Misc/_ark-clean/
-else
-    printf "\n%s\n\n" "Target drive not mounted! Exiting..."
-    exit 1
+    EXCLUDE_LIST=/home/woods/xlists/x-home_ark    
+
+    if ! [[ -f "$EXCLUDE_LIST" ]]; then
+        printf "\n%s\n\n" "Exclusion list not found! Exiting...with error code: 2"
+        exit 2
+    fi
+    
+    if ! [[ -d "$clean_path" ]]; then
+        mkdir "$clean_path"
+    fi    
 fi
 
-function create_new_home_ark () {
+function create_new_ark () {
 # Creates archive of home directory by cd to /home/woods then tar with exclusions
 
     ark_file="$ark_path"/woods-home_"$_NOW".tar.gz
-    EXCLUDE_LIST=/home/woods/xclude-lists/xclude-home_tgz.txt
     cd /home/woods && tar -X "$EXCLUDE_LIST" -czpf "$ark_file" ./*
     
 return 0
 }
 
-function remove_oldest_home_ark () {
+function remove_oldest_ark () {
 # Determines oldest archirve & moves to clean_path for user review.
 
     clean_file=$(find "$ark_path" -type f -printf '%P\n'| sort | head -1)
-    if [ -d "$clean_path" ]; then
-        mv "$ark_path"/"$clean_file" "$clean_path"
-    fi
+    mv "$ark_path"/"$clean_file" "$clean_path"
     
 return 0
 }
 
 function main () {
-# Program entry point. Calls other functions to create new archive and remove oldest.
+# Calls other functions that create new archive and remove oldest.
 
-    create_new_home_ark &&
-    remove_oldest_home_ark
+    create_new_ark &&
+    remove_oldest_ark
     
 return 0
 }
