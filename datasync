@@ -28,6 +28,9 @@
 # message inside clean_files function.
 # 2018-01-18: egrep replaced with grep -E
 # 2018-01-19: updated LOG file path, EXCLUDE_LIST path and clean_files paths
+# 2018-02-08: exclusion list path and filenames changed. Initial logic restructured.
+# Check for exculde list added. Exit with error codes updated. clean_files()
+# checks that ARKDIR exists and moves files or notifies user of problem.
 #------------------------------------------------------------------------------
 
 # Define text colors using tput
@@ -40,24 +43,34 @@ RESET=$(tput sgr0)
 SYNCTYPE=( "rsync -n" "rsync " )
 
 # If Data drive is mounted: Define SOURCE, TARGET_LIST, date-time, & EXCLUDE_LIST else EXIT.
-if (mountpoint -q /media/woods/Data); then
+if ! (mountpoint -q /media/woods/Data); then
+    printf "\n%s\n\n" "$RED ***** Source Drive NOT Mounted! Program terminated with exit code: 1 ***** $RESET"
+    exit 1
+else
     SOURCE=/media/woods/Data/
     TARGET_LIST=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
     _NOW=$(date +%F_%T)
+    ARKDIR=/home/woods/backup_log-files/backups_completed/"$_NOW"
     EXCLUDE_LIST=/home/woods/xlists/x-datasync
-else
-    echo "$RED""***** Error Setting Source Drive! Program Terminated! *****""$RESET"
-    exit 1
+    
+    if ! [[ -f "$EXCLUDE_LIST" ]]; then
+        printf "\n%s\n\n" "$RED Exclusion list not found! Exiting...with error code: 2 $RESET"
+        exit 2
+    fi
 fi
 
 clean_files () {
 # Function moves log files to $_NOW folder and archives folder in backups_completed directory
 
-    mkdir /home/woods/backup_log-files/backups_completed/"$_NOW"
-    mv /home/woods/backup_log-files/*"$_NOW" /home/woods/backup_log-files/backups_completed/"$_NOW"
-    echo "$GREEN""Synchronization complete. Log files have been archived.""$RESET" 
-    
-    return 0
+    mkdir "$ARKDIR"
+    if [[ -d "$ARKDIR" ]]; then
+        mv /home/woods/backup_log-files/*"$_NOW" "$ARKDIR"
+        echo "$GREEN""Synchronization complete. Log files have been archived.""$RESET"
+    else
+        echo "$GREEN""Synchronization complete.$RESET $YELLOW Log files could NOT be archived. Check Directory Name.""$RESET"
+    fi
+ 
+return 0
 }
 
 sync_control () {
@@ -100,7 +113,7 @@ sync_control () {
         fi      
 
     done  
-    return 0
+return 0
 }
 
 main () {
@@ -129,7 +142,7 @@ main () {
             case $ANSWER in
                 "YES")
 # call sync_control with listed options: 1 = rsync (perform sychronization)
-                    sync_control sync Synchronizing 1               
+                    sync_control sync Synchronizing 1         
                     clean_files 
                     break
                     ;;
@@ -143,7 +156,7 @@ main () {
         done
     fi
     
-    return 0
+return 0
 }
 main
 
