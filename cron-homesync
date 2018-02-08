@@ -15,7 +15,7 @@
 # 2018-01-19: updated LOG file path and EXCLUDE_LIST path.
 #------------------------------------------------------------------------------
 
-EXCLUDE_LIST=/home/woods/xclude-lists/xclude-homesync.txt
+EXCLUDE_LIST=/home/woods/xlists/x-homesync
 SOURCE=/home/woods/
 TARGET=/media/woods/Misc/home_sync/
 LOG=/home/woods/_home-files-to-sync

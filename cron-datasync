@@ -18,7 +18,7 @@
 #------------------------------------------------------------------------------
 
 if (mountpoint -q /media/woods/Data); then
-    EXCLUDE_LIST=/home/woods/xclude-lists/xclude-datasync.txt
+    EXCLUDE_LIST=/home/woods/xlists/x-datasync
     SOURCE=/media/woods/Data/
     drive_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
     LOG=/home/woods/_data-files-to-sync

@@ -44,7 +44,7 @@ if (mountpoint -q /media/woods/Data); then
     SOURCE=/media/woods/Data/
     TARGET_LIST=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
     _NOW=$(date +%F_%T)
-    EXCLUDE_LIST=/home/woods/xclude-lists/xclude-datasync.txt
+    EXCLUDE_LIST=/home/woods/xlists/x-datasync
 else
     echo "$RED""***** Error Setting Source Drive! Program Terminated! *****""$RESET"
     exit 1
