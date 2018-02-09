@@ -17,10 +17,17 @@
 # 2018-01-19: updated LOG file path and EXCLUDE_LIST path
 # 2018-02-08: Initial logic restructured. Exit with error codes updated. Block
 # print to LOG file. Check for exculde list added.
+# 2018-02-09: Message variables added. rsync command consistent with datasync
+# script format
 #------------------------------------------------------------------------------
 
+#DEFINE MESSAGES
+ERROR1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
+ERROR2="***** Exclusion list not found! Exiting...with error code: 2 *****"
+
+
 if ! (mountpoint -q /media/woods/Data); then
-    printf "\n%s\n\n" "***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
+    printf "\n%s\n\n" "$ERROR1"
     exit 1
 else
     SOURCE=/media/woods/Data/
@@ -28,7 +35,7 @@ else
     EXCLUDE_LIST=/home/woods/xlists/x-datasync
     
     if ! [[ -f "$EXCLUDE_LIST" ]]; then
-        printf "\n%s\n\n" "Exclusion list not found! Exiting...with error code: 2"
+        printf "\n%s\n\n" "$ERROR2"
         exit 2
     fi
     
@@ -47,14 +54,22 @@ function sync_control () {
         TARGET=$mount_point/
         
         if ! (mountpoint -q "$SOURCE"); then
-            printf "\n%s\n\n" "***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
+            printf "\n%s\n\n" "$ERROR1"
             exit 1
         elif ! (mountpoint -q "$TARGET"); then
             printf "\n\n%s\n\n" "***** $TARGET Excluded. Drive NOT Mounted! *****"
         else
+        ############################# RSYNC BLOCK #############################
+        
             printf "%s\n\n" "Data drive files to sync with $TARGET"
-            rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=$EXCLUDE_LIST "$SOURCE" "$TARGET"
+            
+            rsync --dry-run -rpgDvOult --progress --delete --modify-window=1 \
+            --exclude-from=$EXCLUDE_LIST --human-readable --stats \
+            "$SOURCE" "$TARGET"
+            
             printf "%s\n\n"
+            
+        ############################# RSYNC BLOCK #############################
         fi
         
     done
