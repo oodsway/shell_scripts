@@ -32,36 +32,36 @@
 # Check for exculde list added. Exit with error codes updated. clean_files()
 # checks that ARKDIR exists and moves files or notifies user of problem.
 # 2018-02-09: Message variables; color by escape sequences; block print to LOG;
-# sync status via awk of rsync stats using variables: created, deleted.
+# sync status via awk of rsync stats using variables: created, deleted. Color
+# codes added to message variables.
 #------------------------------------------------------------------------------
 
-#DEFINE MESSAGES
-ERROR1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
-ERROR2="***** Exclusion list not found! Exiting...with error code: 2 *****"
-BANNER1="The following target drives will be compared with the source drive: "
-SIMMSG1="Simulation complete. The following drive(s) need to be synchronized:"
-SIMMSG2="Simulation complete. No Files to Synchronize. Logs removed. Exiting."
-SYNCMSG1="Synchronization complete. Log files have been archived."
-SYNCMSG2="Synchronization complete. Log files could NOT be archived. Check Directory Name."
-ABORTMSG="***** Process Aborted by User *****"
-
-# Define text colors
-GREEN="\033[0;32m"
+# Define colors ascending by color number. Unused commented.
 RED="\033[0;31m"
+GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
+# BLUE="\033[0;34m"
+# MAGENTA="\033[0;35m"
+# CYAN="\033[0;36m"
+WHITE="\033[0;37m"
 RESET="\033[0m"
 
-# unused colors
-# CYAN="\033[0;36m"
-# MAGENTA="\033[0;35m"
-# WHITE="\033[0;37m"
+#Define messages with color format,
+ERROR1="$RED""***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****""$RESET"
+ERROR2="$RED""***** Exclusion list not found! Exiting...with error code: 2 *****""$RESET"
+BANNER1="$WHITE""The following target drives will be compared with the source drive: ""$RESET"
+SIMMSG1="$GREEN""Simulation complete. The following drive(s) need to be synchronized:""$RESET"
+SIMMSG2="$GREEN""Simulation complete. No Files to Synchronize. Logs removed. Exiting.""$RESET"
+SYNCMSG1="$GREEN""Synchronization complete. Log files have been archived.""$RESET"
+SYNCMSG2="$YELLOW""Synchronization complete. Log files could NOT be archived. Check Directory Name.""$RESET"
+ABORTMSG="$YELLOW""***** Process Aborted by User *****""$RESET"
 
 # Store choice of rsync --dry-run or rsync in array SYNCTYPE
 SYNCTYPE=( "rsync --dry-run" "rsync " )
 
 # If Data drive not mounted, exit, else define SOURCE, TARGET_LIST, date-time, ARKDIR & EXCLUDE_LIST.
 if ! (mountpoint -q /media/woods/Data); then
-    printf "\n$RED%s$RESET\n\n"  "$ERROR1"
+    printf "\n%b%s%b\n\n"  "$ERROR1"
     exit 1
 else
     SOURCE=/media/woods/Data/
@@ -71,7 +71,7 @@ else
     EXCLUDE_LIST=/home/woods/xlists/x-datasync
     
     if ! [[ -f "$EXCLUDE_LIST" ]]; then
-        printf "\n$RED%s$RESET\n\n" "$ERROR2"
+        printf "\n%b%s%b\n\n" "$ERROR2"
         exit 2
     fi
 fi
@@ -82,9 +82,9 @@ clean_files () {
     mkdir "$ARKDIR"
     if [[ -d "$ARKDIR" ]]; then
         mv /home/woods/backup_log-files/*"$_NOW" "$ARKDIR"
-        echo -e "$GREEN""$SYNCMSG1""$RESET"
+        echo -e "$SYNCMSG1"
     else
-        echo -e "$YELLOW""$SYNCMSG2""$RESET"
+        echo -e "$SYNCMSG2"
     fi
  
 return 0
@@ -106,7 +106,7 @@ sync_control () {
         # Terminate if SOURCE drive not mounted. This is an extra check.              
         if ! (mountpoint -q "$SOURCE"); then
             {
-            printf "\n$RED%s$RESET\n\n"  "$ERROR1"
+            printf "\n%b%s%b\n\n"  "$ERROR1"
             } | tee -a "$LOG"
             exit  1
         # If TARGET drive not mounted, continue but log event.
@@ -149,7 +149,7 @@ main () {
 # Function controls overall program flow. Calls sync_control function; displays process messages.
 
     clear
-    echo "$BANNER1""$SOURCE"
+    echo -e "$BANNER1""$SOURCE"
     for mount_point in "${TARGET_LIST[@]}"; do
         echo -e "$YELLOW" "$mount_point" "$RESET"
     done; echo
@@ -158,10 +158,10 @@ main () {
     sync_control sim Simulating 0
     
     if [ "${#TARGET_LIST[@]}" -eq 0 ]; then
-        echo -e "$GREEN""$SIMMSG2""$RESET"
+        echo -e "$SIMMSG2"
         rm -f /home/woods/backup_log-files/*"$_NOW"
     else
-        echo -e "$GREEN""$SIMMSG1""$RESET"
+        echo -e "$SIMMSG1"
         for mount_point in "${TARGET_LIST[@]}"; do
             echo -e "$YELLOW" "$mount_point" "$RESET"
         done; echo
@@ -176,7 +176,7 @@ main () {
                     break
                     ;;
                 "q")
-                    echo; echo -e "$YELLOW""$ABORTMSG" "$RESET"
+                    printf "\n%b%s%b\n\n" "$ABORTMSG"
                     rm -f /home/woods/backup_log-files/*"$_NOW"
                     break
                     ;;
