@@ -132,8 +132,8 @@ sync_control () {
         fi
         
         # Examine rsync stats in LOG for number files created and deleted
-        created=$(awk '/Number of created files:/ {print $5}' "$LOG" | sort -u)
-        deleted=$(awk '/Number of deleted files:/ {print $5}' "$LOG" | sort -u)
+        created=$(awk '/Number of created files:/ {print $5}' "$LOG")
+        deleted=$(awk '/Number of deleted files:/ {print $5}' "$LOG")
         
         # If created && deleted == 0; no sync needed; remove the mount_point from list      
         if [[ "$created" -eq 0 ]] &&  [[ "$deleted" -eq 0 ]]; then
