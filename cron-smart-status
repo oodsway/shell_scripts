@@ -50,7 +50,7 @@ get_summary () {
     {
     awk '$0 ~ "/dev/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On" {print $0} \
     $0 ~ "LBAs_Written" {printf "%s%69s%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024, " GiB"} \
-    $0 ~ "Errors" {printf "%s\n", $0} ' "$LOG"
+    $0 ~ "Errors" {printf "%s\n\n", $0} ' "$LOG"
     } >> "$smart_sum"
 
 return 0
