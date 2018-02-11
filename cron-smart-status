@@ -23,8 +23,8 @@ LOG=/home/woods/SMART/_smart_status_$(date +%F_%T)
 drive_list=( $(mount | awk '/\/dev\/sd/ {print $1}' | sed 's/[0-9]//g' | sort -u) )
 divider="-------------------------------------------------------------------------------------------------"
 
-function get_status () {
-# Obtains smartctl drive info, health, attributes, error & selftest status then writes to logfile.
+get_status () {
+# Obtains smartctl drive info, health, attributes, error & selftest status then writes to LOG
 
     for drive in "${drive_list[@]}" ; do
         {
@@ -37,10 +37,10 @@ function get_status () {
 return 0
 }
 
-function executive_summary () {
-# Prints and top-level summary of daily smartctl log on desktop.
+get_summary () {
+# Creates a summary of critical SMART attributes organized by drive.
 
-    smart_sum=/home/woods/_smartctl_daily_summary.txt
+    smart_sum=/home/woods/_smartctl_summary.txt
     
     if [ -e "$smart_sum" ]; then
         rm -f "$smart_sum"
@@ -57,17 +57,14 @@ return 0
 }
 
 
-function main () {
-# Controls program flow.
+main () {
+# Calls functions that create smartcrl LOG and summary report.
 
     get_status
-    executive_summary
+    get_summary
     sudo chown woods:woods "$LOG" "$smart_sum"
     
 return 0
 }
 
 main
-
-
- 
