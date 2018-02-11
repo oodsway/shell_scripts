@@ -21,7 +21,7 @@ function scan_system () {
     {
     printf '%s\n\n' "Scan started: $(date)"
     tail /var/log/clamav/freshclam.log
-    sudo clamscan -ir / --exclude-dir='^/(media|sys|dev|proc)'
+    sudo clamscan -ir / --exclude-dir='^/(cdrom|dev|media|mnt|proc|snap|srv|sys)'
     printf '\n%s\n\n'  "Scan completed: $(date)"
     } >> "$LOG" 2> /dev/null
 return 0
