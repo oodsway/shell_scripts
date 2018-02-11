@@ -16,6 +16,7 @@
 # top-level view of daily status checks.
 # 2018-01-18: egrep replaced with grep -E
 # 2018-01-19: updated smart_sum log path 
+# 2018-02-11: executive_summary() using one awk command providing results grouped by drive
 #--------------------------------------------------------------------------------------
 
 LOG=/home/woods/SMART/_smart_status_$(date +%F_%T)
@@ -45,9 +46,10 @@ function executive_summary () {
         rm -f "$smart_sum"
     fi
     
+    # Shellcheck error SC1004 - don't break lines in '' with "\"
     {
-    awk '$0 ~ "/dev/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On" {print $0}\
-    $0 ~ "LBAs_Written" {printf "%s%69s%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024, " GiB"}\
+    awk '$0 ~ "/dev/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On" {print $0} \
+    $0 ~ "LBAs_Written" {printf "%s%69s%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024, " GiB"} \
     $0 ~ "Errors" {printf "%s\n", $0} ' "$LOG"
     } >> "$smart_sum"
 
