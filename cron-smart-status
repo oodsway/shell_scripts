@@ -46,12 +46,9 @@ function executive_summary () {
     fi
     
     {
-    printf '%s\n\n' "Health Status Info:"
-    grep -Ei '\/dev\/sd|errors|passed' "$LOG"
-    printf '\n'
-    awk '/(\/dev\/sd|Reallocated|Pending|Uncorrectable|Power_On|Passed)/ {print $0}' "$LOG"
-    printf '\n%s\n' "Total_LBAs_Written (human readable)"
-    grep -Ei 'Total_LBAs_Written' "$LOG" | awk '{print $10*512/1024/1024/1024 " GiB"}'
+    awk '$0 ~ "/dev/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On" {print $0}\
+    $0 ~ "LBAs_Written" {printf "%s%69s%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024, " GiB"}\
+    $0 ~ "Errors" {printf "%s\n", $0} ' "$LOG"
     } >> "$smart_sum"
 
 return 0
