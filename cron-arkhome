@@ -18,6 +18,7 @@
 # quit; if no clean_path, create. Functions renamed.
 # 2018-02-11: simplified remove_oldest_ark cmds. Error variables added. Added
 # check if oldest file exists before moving.
+# 2018-02-14: Automatically rm clean_path files when # files >= 7
 #------------------------------------------------------------------------------
 
 ERROR1="Target drive not mounted! Exiting...with error code: 1"
@@ -36,7 +37,7 @@ else
         printf "\n%s\n\n" "$ERROR2"
         exit 2
     fi
-    
+
     if ! [[ -d "$clean_path" ]]; then
         mkdir "$clean_path"
     fi    
@@ -52,13 +53,19 @@ return 0
 }
 
 remove_oldest_ark () {
-# Determines oldest archirve & moves to clean_path for user review.
+# Determines oldest archive & moves to clean_path for user review.
+# Automatically rm clean_path files when # files >= 7
 
     clean_file=$(find "$ark_path" -type f | sort | head -1)
     if [ -f "$clean_file" ]; then
         mv "$clean_file" "$clean_path"
     fi
-    
+
+    if [[ $( find "$clean_path" -type f  | wc -l ) -ge 7 ]]; then
+        # format by shellcheck https://github.com/koalaman/shellcheck/wiki/SC2038
+        find "$clean_path" -type f  -print0 | xargs -0 rm
+    fi
+
 return 0
 }
 
