@@ -29,6 +29,8 @@
 # 2018-01-18: awk one-liner replaces 2 grep & one awk. uname -r used to get cuurent_kernel
 # Installed kernels shown in green if rc list empty before exit. remove and keep lists
 # created when rc_kernel_list not empty.
+# 2018-02-16: added countdown display menu before removal. Fixed failed exit
+# on apt-get abort option.
 #------------------------------------------------------------------------------
 
 clear
@@ -88,7 +90,7 @@ status_report () {
     printf "$GREEN%-40s %-40s %-40s$RESET\n" "${rc_kernel_list[@]}"
     printf "\n"
     
-    return 0
+return 0
 }
 
 select_kernels () {
@@ -128,6 +130,22 @@ while (( ${#rc_kernel_list[@]} > j )); do
     kernels_to_consider=$(( ${#rc_kernel_list[@]} - j))
     printf "%s\n\n" "...${#rc_kernel_list[@]} remain in the list, $kernels_to_consider kernels remain to consider."
 done
+
+return 0
+}
+
+display_dots () {
+# Display messages and a 3 second countdown timer.
+
+    printf '%b%s%b\n' "$GREEN""Executing sudo apt-get --purge remove command""$RESET"
+    printf '%b%s%b' "$YELLOW""ABORT IS STILL POSSIBLE. JUST CHOOSE [n] AT NEXT MENU""$RESET"
+    printf '%s' "..."
+    for i in {3..1}; do
+        printf '%s'"$i..."
+        sleep 1
+    done
+    printf "\n\n"
+
 return 0
 }
 
@@ -138,8 +156,9 @@ while true; do
     read -r -p "Remove (a)ll | (s)elected rc kernels or (q)uit: " choice    
     case $choice in
         "a")  
-            clear
+            display_dots
             sudo apt-get --purge remove "${rc_kernel_list[@]}"
+            printf '\n%s\n' "Exiting..."
             exit 0
             ;;        
         "s") 
@@ -154,7 +173,9 @@ while true; do
                 read -r -p "Enter (Y)es to remove | (q) to quit | (p)revious menu: " option
                 case $option in
                     "Y")                
+                        display_dots
                         sudo apt-get --purge remove "${remove_list[@]}"
+                        printf '\n%s\n' "Exiting..."
                         exit 0
                         ;;
                     "q")
@@ -177,6 +198,8 @@ while true; do
         *) echo invalid option;;
     esac
 done
+
+return 0
 }
 
 main
