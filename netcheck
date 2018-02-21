@@ -9,26 +9,27 @@
 # Change Log
 # 2018-01-23: fork of ping_monet, modified based on the following article:
 # https://www.shellscript.sh/tips/ping/
+# 2018-02-17: printf & format changes, function call with google.com for DNS check 
 #------------------------------------------------------------------------------
 
 clear
 
 net_check () {
-#Function: Performs 1 sec background ping in separate background processes
-#then displays message if ip was reached.
+# Function: Performs 1 sec background ping in separate background processes
+# then displays message if ip was reached.
+# Source: https://www.shellscript.sh/tips/ping/
 
 for host in $2
 do
   ip="$1.$host"
-  (ping -c1 -W1 "$ip" > /dev/null 2>&1 && echo "$ip reached") &
+  ( ping -c1 -W1 "$ip" > /dev/null 2>&1 && printf '%-16s%s\n' "$ip" "success" ) &
 done
 wait
-echo
     
 return 0
 }
 
-net_check "10.0.0" "$(seq 0 254)" 
-net_check "192.168.3" "$(seq 0 254)"
 net_check "8.8.8" "8"
-
+net_check "google" "com" && echo
+net_check "10.0.0" "$(seq 0 254)" && echo
+net_check "192.168.3" "$(seq 0 254)"
