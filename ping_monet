@@ -10,23 +10,29 @@
 # 2017-07-11: 192.168.3.x added to network
 # 2017-12-28: removed 172.x.x.x.; 10.x.x.x & ping of google added
 # 2017-12-29: generalized with one loop & passing net and hosts to function
+# 2018-02-17: modified according to netcheck, but reports failure, if any
 #------------------------------------------------------------------------------
 
 clear
 
 ping_monet () {
-#Function: Performs 3 pings in background for each net.host
+# Function: Performs 1 sec background ping in separate background processes
+# then displays message if ip was reached or failed. Checks DNS resolution.
+# Source: https://www.shellscript.sh/tips/ping/
 
-    echo
-    for host in $2; do
-        ping -c 3 -q "$1.$host"
-        echo
-    done
+for host in $2
+do
+    ip="$1.$host"
+    ( ping -c1 -W1 "$ip" > /dev/null 2>&1 && \
+    printf '%-16s%s\n' "$ip" "success" || \
+    printf '%-16s%s\n' "$ip" "failed" ) &
+done
+wait
     
 return 0
 }
 
-ping -c 3 -q 8.8.8.8
-ping_monet "10.0.0" "1 10 105" 
+ping_monet "8.8.8" "8"
+ping_monet "google" "com" && echo
+ping_monet "10.0.0" "1 10 105" && echo
 ping_monet "192.168.3" "1 2 3 14"
-
