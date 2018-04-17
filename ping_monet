@@ -35,4 +35,4 @@ return 0
 ping_monet "8.8.8" "8"
 ping_monet "google" "com" && echo
 ping_monet "10.0.0" "1 10 105" && echo
-ping_monet "192.168.3" "1 2 3 5 14"
+ping_monet "192.168.3" "1 2 3 4 5 14"
