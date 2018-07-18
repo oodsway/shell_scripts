@@ -6,20 +6,26 @@
 # Purpose: A simple diceware passphrase algorithm using EFF large word list.
 # Source: https://www.eff.org/dice
 
-########################## INSTRUCTIONS ##########################
-
+########################## BRIEF INSTRUCTIONS ##########################
+# Run dicephrase with or without options
 # ~$: ./dicephrase (words_per_phrase) (number_of_phrases)
 
+# with both options spcified:
 # ~$: ./dicephrase 7 30
-# will generate 30 phrases with 7 words_per_phrases
+# will generate 30 phrases with 7 words_per_phrase
 
-# ~$: ./dicephrase
-# will generate the default: 1 phrase with 6 words_per_phrases
-
+# with a single option (number_of_phrases) specified:
 # ~$: ./dicephrase "" 5
-# will generate the default: 5 phrases with 6 words_per_phrases
-    
-###################################################################
+# will generate 5 phrases with 6 words_per_phrase
+
+# with a single option (words_per_phrase) specified:
+# ~$: ./dicephrase 8 "" 
+# will generate 1 phrase with 8 words_per_phrase
+
+# without options
+# ~$: ./dicephrase
+# will generate the default: 1 phrase with 6 words_per_phrase   
+########################################################################
 
 words_per_phrase=${1:-6}
 number_of_phrases=${2:-0}
@@ -27,14 +33,17 @@ number_of_dice=5
 phrase=( )
 keys=( )
 
-# Edit dicelog & wordlist paths for your system.
-dicelog="$HOME/bin/dicephrase_log.txt"
+# Edit paths below for your system.
+
 wordlist="$HOME/bin/eff_large_wordlist.txt"
+dicelog="$HOME/bin/dicephrase_log.txt"
+download_path="$HOME/bin/"
 eff_url="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
+
 
 if [ ! -f "${wordlist}" ]
 then
-    wget -a "$dicelog" -P "$HOME/bin/" "${eff_url}"
+    wget -a "$dicelog" -P "$download_path" "${eff_url}"
 fi
 
 roll_dice () {
