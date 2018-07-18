@@ -34,12 +34,10 @@ phrase=( )
 keys=( )
 
 # Edit paths below for your system.
-
 wordlist="$HOME/bin/eff_large_wordlist.txt"
 dicelog="$HOME/bin/dicephrase_log.txt"
 download_path="$HOME/bin/"
 eff_url="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
-
 
 if [ ! -f "${wordlist}" ]
 then
