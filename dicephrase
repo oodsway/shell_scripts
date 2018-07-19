@@ -39,9 +39,15 @@ dicelog="$HOME/bin/dicephrase_log.txt"
 download_path="$HOME/bin/"
 eff_url="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
 
-if [ ! -f "${wordlist}" ]
-then
-    wget -a "$dicelog" -P "$download_path" "${eff_url}"
+net_test=$(ping -c1 -W1 8.8.8.8 > /dev/null 2>&1 && echo $?)
+
+if [ ! -f  "${wordlist}" ]; then 
+    if [ "$net_test" == 0 ]; then
+        wget -a "$dicelog" -P "$download_path" "${eff_url}"
+    else
+        printf '%s\n' "Error! An internet connection required to download word list."
+        exit 1
+    fi
 fi
 
 roll_dice () {
