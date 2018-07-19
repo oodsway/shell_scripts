@@ -28,7 +28,7 @@
 ########################################################################
 
 words_per_phrase=${1:-6}
-number_of_phrases=${2:-0}
+number_of_phrases=${2:-1}
 number_of_dice=5
 phrase=( )
 keys=( )
@@ -73,7 +73,7 @@ return 0
 }
 
 main () {
-for ((c==1; c<=number_of_phrases; c++))
+for ((c==1; c<number_of_phrases; c++))
 do
     get_phrase
 
