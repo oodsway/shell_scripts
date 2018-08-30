@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2018-08-30
+# Purpose: Performs background pings of Amazon Kindle Fire update sites. 
+# Google is checked followed by FQDNs and list of AMZN IPv4 update addresses.
+
+clear
+
+kfcheck () {
+
+    ip="$1"
+    ( ping -c1 -W1 "$ip" > /dev/null 2>&1 && \
+    printf '%-20s%s\n' "$ip" " success" || \
+    printf '%-20s%s\n' "$ip" " failed" ) &
+    wait
+    
+return 0
+}
+
+kfcheck 8.8.8.8
+kfcheck google.com && echo
+kfcheck a1896.g.akamai.net
+kfcheck a1910.d.akamai.net
+kfcheck amzdigital-a.akamaihd.net
+kfcheck amzdigitaldownloads.edgesuite.net
+kfcheck amzdigital-a.akamaihd.net.edgesuite.net
+kfcheck softwareupdates.amazon.com
+kfcheck updates.amazon.com
+kfcheck 23.209.36.105
+kfcheck 23.209.36.129
+kfcheck 23.209.36.139
+kfcheck 23.209.36.146
+kfcheck 23.219.88.200
+kfcheck 23.43.56.192
+kfcheck 23.43.56.193
+kfcheck 23.43.56.194
+kfcheck 23.43.56.195
+kfcheck 23.43.56.208
+kfcheck 23.50.225.16
+kfcheck 23.50.51.168
+kfcheck 23.50.51.169
+kfcheck 23.50.51.208
+kfcheck 72.247.240.11
+kfcheck 72.247.240.97
+kfcheck 104.107.60.18
+kfcheck 104.107.60.184
+kfcheck 104.107.60.243
+kfcheck 104.107.60.26
+kfcheck 104.70.178.64
+kfcheck 104.70.178.64
+kfcheck 104.70.178.74
+kfcheck 104.70.178.83
+kfcheck 104.70.178.123
+kfcheck 176.32.101.122
+kfcheck 176.32.99.246
+kfcheck 204.237.142.67
+kfcheck 204.237.142.88
+kfcheck 205.251.243.137
