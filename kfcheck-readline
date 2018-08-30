@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2018-08-30
+# Purpose: Performs background pings of Amazon Kindle Fire update sites. 
+# Google is checked followed by FQDNs and list of AMZN IPv4 update addresses.
+# This version reads from file called kf_blocklist.txt which must be in
+# the same directory as this script.
+
+clear
+
+kfcheck () {
+
+    ip="$1"
+    ( ping -c1 -W1 "$ip" > /dev/null 2>&1 && \
+    printf '%-20s%s\n' "$ip" " success" || \
+    printf '%-20s%s\n' "$ip" " failed" ) &
+    wait
+    
+return 0
+}
+
+main () {
+while read -r line
+do
+kfcheck "$line"
+
+done < kf_blocklist.txt
+
+return 0
+}
+
+kfcheck 8.8.8.8
+kfcheck google.com && echo
+
+main
