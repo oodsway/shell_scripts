@@ -11,8 +11,8 @@ kfcheck () {
 
     ip="$1"
     ( ping -c1 -W1 "$ip" > /dev/null 2>&1 && \
-    printf '%-20s%s\n' "$ip" " not blocked" || \
-    printf '%-20s%s\n' "$ip" " blocked" ) &
+    printf '%-40s%s\n' "$ip" " not blocked" || \
+    printf '%-40s%s\n' "$ip" " blocked" ) &
     wait
     
 return 0
@@ -43,6 +43,10 @@ kfcheck 23.50.225.16
 kfcheck 23.50.51.168
 kfcheck 23.50.51.169
 kfcheck 23.50.51.208
+kfcheck 23.209.36.99
+kfcheck 23.209.36.121
+kfcheck 23.209.36.105
+kfcheck 23.209.36.131
 kfcheck 63.130.77.62
 kfcheck 63.130.77.60
 kfcheck 63.130.77.46
@@ -59,8 +63,10 @@ kfcheck 104.70.178.83
 kfcheck 104.70.178.123
 kfcheck 176.32.101.122
 kfcheck 176.32.99.246
+kfcheck 204.188.136.132
 kfcheck 204.188.136.133
+kfcheck 204.188.136.134
+kfcheck 204.188.136.142
 kfcheck 204.237.142.67
 kfcheck 204.237.142.88
 kfcheck 205.251.243.137
-
