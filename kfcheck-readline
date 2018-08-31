@@ -13,8 +13,8 @@ kfcheck () {
 
     ip="$1"
     ( ping -c1 -W1 "$ip" > /dev/null 2>&1 && \
-    printf '%-20s%s\n' "$ip" " success" || \
-    printf '%-20s%s\n' "$ip" " failed" ) &
+    printf '%-20s%s\n' "$ip" " not blocked" || \
+    printf '%-20s%s\n' "$ip" " blocked" ) &
     wait
     
 return 0
