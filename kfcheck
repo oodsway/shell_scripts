@@ -20,6 +20,8 @@ return 0
 
 kfcheck 8.8.8.8
 kfcheck google.com && echo
+
+
 kfcheck a1896.g.akamai.net
 kfcheck a1910.d.akamai.net
 kfcheck amzdigital-a.akamaihd.net
@@ -41,6 +43,9 @@ kfcheck 23.50.225.16
 kfcheck 23.50.51.168
 kfcheck 23.50.51.169
 kfcheck 23.50.51.208
+kfcheck 63.130.77.62
+kfcheck 63.130.77.60
+kfcheck 63.130.77.46
 kfcheck 72.247.240.11
 kfcheck 72.247.240.97
 kfcheck 104.107.60.18
@@ -54,6 +59,8 @@ kfcheck 104.70.178.83
 kfcheck 104.70.178.123
 kfcheck 176.32.101.122
 kfcheck 176.32.99.246
+kfcheck 204.188.136.133
 kfcheck 204.237.142.67
 kfcheck 204.237.142.88
 kfcheck 205.251.243.137
+
