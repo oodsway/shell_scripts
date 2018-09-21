@@ -111,7 +111,7 @@ sync_control () {
 
         fi
         
-        # Examine rsync stats in LOG for number files created, deleted, or transferred
+        # Examine rsync stats in LOG for number files created, deleted, and transferred
         created=$(awk '/Number of created files:/ {print $5}' "$LOG")
         deleted=$(awk '/Number of deleted files:/ {print $5}' "$LOG")       
         xferred=$(awk '/Number of regular files transferred:/ {print $6}' "$LOG")
