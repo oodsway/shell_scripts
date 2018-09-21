@@ -7,85 +7,61 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2016-05-26  Added conditional that sets SOURCE & globals only IF Data drive is mounted.
-# Added "/media/woods/Data-" explicit path to search in awk. Results are sorted
-# 2016-05-29 Changed variable name DRIVE_LIST to TARGET_LIST
-# 2016-07-14: replaced sort|uniq with sort -u in creating TARGET_LIST
-# 2016-07-16: Added long form "--append" for tee in sync_control function.
-# 2016-09-21: changed _NOW to standard format of +%F_%T (2016-09-21_%T).
-# & increased RESPONSE_TIME to 600s
-# 2016-09-30: changed EXCLUDE_LIST source file name. Deprecates all previous versions.
-# 2016-09-30: replaced if-block with case & removed RESPONSE_TIME in read. 
-# 2016-10-09: log files removed before exit when nothing to sync
-# 2016-11-13: corrected issues identified by: http://www.shellcheck.net/#
-# added return 0 to functions & remove log files if quit w/o sync
-# 2016-11-20: added until loop to simplify dialog for sync or quit; changed
-# drive_label variable to log_filename
-# 2016-12-19: added SYNCTYPE array for choice of dry-run or rsync. Changed order
-# flags are passed in to sync_control to agree with order of use. All comments 
-# moved to separate lines
-# 2017-02-04: updated case menu with while statement in main(). moved sync complete 
-# message inside clean_files function.
-# 2018-01-18: egrep replaced with grep -E
-# 2018-01-19: updated LOG file path, EXCLUDE_LIST path and clean_files paths
-# 2018-02-08: exclusion list path and filenames changed. Initial logic restructured.
-# Check for exculde list added. Exit with error codes updated. clean_files()
-# checks that ARKDIR exists and moves files or notifies user of problem.
-# 2018-02-09: Message variables; color by escape sequences; block print to LOG;
-# sync status via awk of rsync stats using variables: created, deleted. Color
-# codes added to message variables.
-# 2018-03-06: Message variables now in "${COLOR} text ${RESET}" format.
+# 2018-09-20: Removed previous formating. Removed "mount_point" variable; loops
+# by index. Safe array element removal using unset 'variable[i]' followed
+# by re-indexing array. Restructed conditionals & loops for clarity. Changed
+# _NOW to NOW. Change Log recorded for current updates going forward.
 #------------------------------------------------------------------------------
 
-# Define colors ascending by color number. Unused commented.
+# Define colors.
 RED="\033[0;31m"
 GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
-# BLUE="\033[0;34m"
-# MAGENTA="\033[0;35m"
-# CYAN="\033[0;36m"
 WHITE="\033[0;37m"
 RESET="\033[0m"
 
-#Define messages with color format,
-ERROR1="${RED}***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****${RESET}"
-ERROR2="${RED}***** Exclusion list not found! Exiting...with error code: 2 *****${RESET}"
-BANNER1="${WHITE}The following target drives will be compared with the source drive: ${RESET}"
-SIMMSG1="${GREEN}Simulation complete. The following drive(s) need to be synchronized:${RESET}"
-SIMMSG2="${GREEN}Simulation complete. No Files to Synchronize. Logs removed. Exiting.${RESET}"
-SYNCMSG1="${GREEN}Synchronization complete. Log files have been archived.${RESET}"
-SYNCMSG2="${YELLOW}Synchronization complete. Log files could NOT be archived. Check Directory Name.${RESET}"
-ABORTMSG="${YELLOW}***** Process Aborted by User *****${RESET}"
+#Define messages.
+ERROR1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
+ERROR2="***** Exclusion list not found! Exiting...with error code: 2 *****"
+BANNER1="The following target drives will be compared with the source drive: "
+SIMMSG1="Simulation complete. The following drive(s) need to be synchronized:"
+SIMMSG2="Simulation complete. No Files to Synchronize. Logs removed. Exiting."
+SYNCMSG1="Synchronization complete. Log files have been archived."
+SYNCMSG2="Synchronization complete. Log files could NOT be archived. Check Directory Name."
+ABORTMSG="***** Process Aborted by User *****"
 
 # Store choice of rsync --dry-run or rsync in array SYNCTYPE
 SYNCTYPE=( "rsync --dry-run" "rsync " )
 
 # If Data drive not mounted, exit, else define SOURCE, TARGET_LIST, date-time, ARKDIR & EXCLUDE_LIST.
-if ! (mountpoint -q /media/woods/Data); then
-    printf "\n%b%s%b\n\n"  "$ERROR1"
+if ! (mountpoint -q /media/woods/Data)
+then
+    printf "\n%b%s%b\n\n"  "$RED" "$ERROR1" "$RESET"
     exit 1
 else
     SOURCE=/media/woods/Data/
     TARGET_LIST=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
-    _NOW=$(date +%F_%T)
-    ARKDIR=/home/woods/backup_log-files/backups_completed/"$_NOW"
+    NOW=$(date +%F_%T)
+    ARKDIR=/home/woods/backup_log-files/backups_completed/"$NOW"
     EXCLUDE_LIST=/home/woods/xlists/x-datasync
     
-    if ! [[ -f "$EXCLUDE_LIST" ]]; then
-        printf "\n%b%s%b\n\n" "$ERROR2"
+    if ! [[ -f "$EXCLUDE_LIST" ]]
+    then
+        printf "\n%b%s%b\n\n" "$RED" "$ERROR2" "$RESET"
         exit 2
     fi
 fi
 
 clean_files () {
-# Function moves log files to _NOW directory in backups_completed directory
+# Function moves log files to NOW directory in backups_completed directory
 
     mkdir "$ARKDIR"
-    if [[ -d "$ARKDIR" ]]; then
-        mv /home/woods/backup_log-files/*"$_NOW" "$ARKDIR"
-        echo -e "$SYNCMSG1"
+    if [[ -d "$ARKDIR" ]]
+    then
+        mv /home/woods/backup_log-files/*"$NOW" "$ARKDIR"
+        echo -e "$GREEN" "$SYNCMSG1" "$RESET"
     else
-        echo -e "$SYNCMSG2"
+        echo -e "$YELLOW" "$SYNCMSG2" "$RESET"
     fi
  
 return 0
@@ -94,33 +70,39 @@ return 0
 sync_control () {
 # Function simulates or processes rsync synchronization with any drives that may be mounted
 
+    local temp_array=( )
+    local list_len="${#TARGET_LIST[@]}"
+    
     # Store a  local copy of TARGET_LIST in mount_list
     mount_list=( "${TARGET_LIST[@]}" )  
-    for mount_point in "${mount_list[@]}"; do
-        TARGET=$mount_point/
+    for i in "${!mount_list[@]}"
+    do
+        TARGET="${mount_list[i]}/"
         
         # Build log_filename for LOG from TARGET path
-        log_filename=$(echo "$TARGET" | awk -F/ '{print $4}')_$1_$_NOW 
+        log_filename=$(basename "$TARGET" )_$1_$NOW
         LOG=/home/woods/backup_log-files/"${log_filename}"
         echo "***** $(date -R) *****" > "$LOG"        
                 
         # Terminate if SOURCE drive not mounted. This is an extra check.              
-        if ! (mountpoint -q "$SOURCE"); then
+        if ! (mountpoint -q "$SOURCE")
+        then
             {
-            printf "\n%b%s%b\n\n"  "$ERROR1"
+            printf "\n%b%s%b\n\n"  "$RED" "$ERROR1" "$RESET"
             } | tee -a "$LOG"
             exit  1
         # If TARGET drive not mounted, continue but log event.
-        elif ! (mountpoint -q "$TARGET"); then
+        elif ! (mountpoint -q "$TARGET")
+        then
             {
-            echo -e "${YELLOW}***** Excluded  $TARGET  drive NOT Mounted! *****${RESET}"
+            echo -e "$YELLOW***** Excluded  $TARGET  drive NOT Mounted! *****$RESET"
             printf "\n" 
             } | tee -a "$LOG"
         else
         
         ############################# RSYNC BLOCK #############################
             {
-            echo -e "${GREEN}$2 $TARGET with $SOURCE ${RESET}"
+            echo -e "$GREEN$2 $TARGET with $SOURCE $RESET"
             
             ${SYNCTYPE[$3]} -rpgDvOult --progress --delete --modify-window=1 \
             --exclude-from=$EXCLUDE_LIST --human-readable --stats \
@@ -136,13 +118,24 @@ sync_control () {
         created=$(awk '/Number of created files:/ {print $5}' "$LOG")
         deleted=$(awk '/Number of deleted files:/ {print $5}' "$LOG")
         
-        # If created && deleted == 0; no sync needed; remove the mount_point from list      
-        if [[ "$created" -eq 0 ]] &&  [[ "$deleted" -eq 0 ]]; then
-            TARGET_LIST=( ${TARGET_LIST[@]/$mount_point} )
+        # If created && deleted == 0; no sync needed; safely remove the target drive from TARGET_LIST   
+        # Source: https://stackoverflow.com/questions/16860877/remove-an-element-from-a-bash-array#16861213
+        if [[ "$created" -eq 0 ]] &&  [[ "$deleted" -eq 0 ]]
+        then
+            unset 'TARGET_LIST[i]'
         fi
 
     done
 
+    # Re-index TARGET_LIST array if greater than zero and shorter than original.
+    if [[ "${#TARGET_LIST[@]}" -gt 0 ]] && [[ "${#TARGET_LIST[@]}" -lt "$list_len" ]]
+    then
+        temp_array=( "${TARGET_LIST[@]}" )
+        unset TARGET_LIST
+        TARGET_LIST=( "${temp_array[@]}" )
+        unset temp_array        
+    fi
+    
 return 0
 }
 
@@ -150,35 +143,42 @@ main () {
 # Function controls overall program flow. Calls sync_control function; displays process messages.
 
     clear
-    echo -e "$BANNER1""$SOURCE"
-    for mount_point in "${TARGET_LIST[@]}"; do
-        echo -e "${YELLOW} $mount_point ${RESET}"
-    done; echo
+    echo -e "$WHITE" "$BANNER1""$SOURCE" "$RESET"
+    for i in "${!TARGET_LIST[@]}"
+    do
+        echo -e "$YELLOW" "${TARGET_LIST[i]}" "$RESET"
+    done
+    echo
     
 # sync_control with option 0 == rsync --dry-run (simulate sychronization) 
     sync_control sim Simulating 0
     
-    if [ "${#TARGET_LIST[@]}" -eq 0 ]; then
-        echo -e "$SIMMSG2"
-        rm -f /home/woods/backup_log-files/*"$_NOW"
+    if [ "${#TARGET_LIST[@]}" -eq 0 ]
+    then
+        echo -e "$GREEN""$SIMMSG2 $RESET"
+        rm -f /home/woods/backup_log-files/*"$NOW"
     else
-        echo -e "$SIMMSG1"
-        for mount_point in "${TARGET_LIST[@]}"; do
-            echo -e "${YELLOW} $mount_point ${RESET}"
-        done; echo
+        echo -e "$GREEN""$SIMMSG1" "$RESET"
+        for i in "${!TARGET_LIST[@]}"
+        do
+            echo -e "$YELLOW" "${TARGET_LIST[i]}" "$RESET"
+        done
+        echo        
         
-        while true; do
+        while true
+        do
             read -r -p "Enter [YES] to Sync or [q] to Quit: " ANSWER
             case $ANSWER in
                 "YES")
 # sync_control with option 1 == rsync (perform sychronization)
+#################################### SYNC ENABLED #####################################
                     sync_control sync Synchronizing 1       
                     clean_files 
                     break
                     ;;
                 "q")
-                    printf "\n%b%s%b\n\n" "$ABORTMSG"
-                    rm -f /home/woods/backup_log-files/*"$_NOW"
+                    printf "\n%b%s%b\n\n" "$YELLOW" "$ABORTMSG" "$RESET"
+                    rm -f /home/woods/backup_log-files/*"$NOW"
                     break
                     ;;
                 *) echo invalid response;;
