@@ -7,20 +7,17 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2018-09-20: Removed previous formating. Removed "mount_point" variable; loops
-# by index. Safe array element removal using unset 'variable[i]' followed
-# by re-indexing array. Restructed conditionals & loops for clarity. Changed
-# _NOW to NOW. Change Log recorded for current updates going forward.
+# 2018-09-21: Added check for number of regular files transferred & tested.
 #------------------------------------------------------------------------------
 
-# Define colors.
+# Define colors:
 RED="\033[0;31m"
 GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
 WHITE="\033[0;37m"
 RESET="\033[0m"
 
-#Define messages.
+#Define messages:
 ERROR1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
 ERROR2="***** Exclusion list not found! Exiting...with error code: 2 *****"
 BANNER1="The following target drives will be compared with the source drive: "
@@ -59,9 +56,9 @@ clean_files () {
     if [[ -d "$ARKDIR" ]]
     then
         mv /home/woods/backup_log-files/*"$NOW" "$ARKDIR"
-        echo -e "$GREEN" "$SYNCMSG1" "$RESET"
+        echo -e "$GREEN""$SYNCMSG1" "$RESET"
     else
-        echo -e "$YELLOW" "$SYNCMSG2" "$RESET"
+        echo -e "$YELLOW""$SYNCMSG2" "$RESET"
     fi
  
 return 0
@@ -114,13 +111,14 @@ sync_control () {
 
         fi
         
-        # Examine rsync stats in LOG for number files created and deleted
+        # Examine rsync stats in LOG for number files created, deleted, or transferred
         created=$(awk '/Number of created files:/ {print $5}' "$LOG")
-        deleted=$(awk '/Number of deleted files:/ {print $5}' "$LOG")
+        deleted=$(awk '/Number of deleted files:/ {print $5}' "$LOG")       
+        xferred=$(awk '/Number of regular files transferred:/ {print $6}' "$LOG")
         
-        # If created && deleted == 0; no sync needed; safely remove the target drive from TARGET_LIST   
-        # Source: https://stackoverflow.com/questions/16860877/remove-an-element-from-a-bash-array#16861213
-        if [[ "$created" -eq 0 ]] &&  [[ "$deleted" -eq 0 ]]
+        # If created, deleted && xferred 0, no sync needed; safely remove the target drive from TARGET_LIST
+        # Source: https://stackoverflow.com/questions/16860877/remove-an-element-from-a-bash-array
+        if [[ "$created" -eq 0 ]] &&  [[ "$deleted" -eq 0 ]] && [[ "$xferred" -eq 0 ]]
         then
             unset 'TARGET_LIST[i]'
         fi
@@ -143,7 +141,7 @@ main () {
 # Function controls overall program flow. Calls sync_control function; displays process messages.
 
     clear
-    echo -e "$WHITE" "$BANNER1""$SOURCE" "$RESET"
+    echo -e "$WHITE""$BANNER1""$SOURCE" "$RESET"
     for i in "${!TARGET_LIST[@]}"
     do
         echo -e "$YELLOW" "${TARGET_LIST[i]}" "$RESET"
@@ -171,7 +169,6 @@ main () {
             case $ANSWER in
                 "YES")
 # sync_control with option 1 == rsync (perform sychronization)
-#################################### SYNC ENABLED #####################################
                     sync_control sync Synchronizing 1       
                     clean_files 
                     break
