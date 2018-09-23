@@ -7,7 +7,8 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2018-09-21: Added check for number of regular files transferred & tested.
+# 2018-09-23: clean_files() now archives a sim-log & a sync-log prior to removing
+# the individual drive's logfiles. Consistent use of [[ ]] tests.
 #------------------------------------------------------------------------------
 
 # Define colors:
@@ -30,13 +31,13 @@ ABORTMSG="***** Process Aborted by User *****"
 # Store choice of rsync --dry-run or rsync in array SYNCTYPE
 SYNCTYPE=( "rsync --dry-run" "rsync " )
 
-# If Data drive not mounted, exit, else define SOURCE, TARGET_LIST, date-time, ARKDIR & EXCLUDE_LIST.
-if ! (mountpoint -q /media/woods/Data)
+# If SOURCE drive not mounted, exit, else define TARGET_LIST, NOW, ARKDIR & EXCLUDE_LIST.
+SOURCE=/media/woods/Data/
+if ! (mountpoint -q "$SOURCE")
 then
     printf "\n%b%s%b\n\n"  "$RED" "$ERROR1" "$RESET"
     exit 1
 else
-    SOURCE=/media/woods/Data/
     TARGET_LIST=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
     NOW=$(date +%F_%T)
     ARKDIR=/home/woods/backup_log-files/backups_completed/"$NOW"
@@ -56,6 +57,9 @@ clean_files () {
     if [[ -d "$ARKDIR" ]]
     then
         mv /home/woods/backup_log-files/*"$NOW" "$ARKDIR"
+        cat "$ARKDIR/"Data-*sim* > "$ARKDIR/""sim_$NOW"  
+        cat "$ARKDIR/"Data-*sync* > "$ARKDIR/""sync_$NOW"
+        rm -f "$ARKDIR/"Data-*
         echo -e "$GREEN""$SYNCMSG1" "$RESET"
     else
         echo -e "$YELLOW""$SYNCMSG2" "$RESET"
@@ -151,7 +155,7 @@ main () {
 # sync_control with option 0 == rsync --dry-run (simulate sychronization) 
     sync_control sim Simulating 0
     
-    if [ "${#TARGET_LIST[@]}" -eq 0 ]
+    if [[ "${#TARGET_LIST[@]}" -eq 0 ]]
     then
         echo -e "$GREEN""$SIMMSG2 $RESET"
         rm -f /home/woods/backup_log-files/*"$NOW"
@@ -169,7 +173,7 @@ main () {
             case $ANSWER in
                 "YES")
 # sync_control with option 1 == rsync (perform sychronization)
-                    sync_control sync Synchronizing 1       
+                    sync_control sync Synchronizing 1
                     clean_files 
                     break
                     ;;
