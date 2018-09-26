@@ -7,8 +7,8 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2018-09-23: clean_files() now archives a sim-log & a sync-log prior to removing
-# the individual drive's logfiles. Consistent use of [[ ]] tests.
+# 2018-09-25: clean_files() now archives simulation and synchronization results
+# by drive in a single log file.
 #------------------------------------------------------------------------------
 
 # Define colors:
@@ -57,8 +57,7 @@ clean_files () {
     if [[ -d "$ARKDIR" ]]
     then
         mv /home/woods/backup_log-files/*"$NOW" "$ARKDIR"
-        cat "$ARKDIR/"Data-*sim* > "$ARKDIR/""sim_$NOW"  
-        cat "$ARKDIR/"Data-*sync* > "$ARKDIR/""sync_$NOW"
+        cat "$ARKDIR/"Data-* > "$ARKDIR/""sim-sync_$NOW"  
         rm -f "$ARKDIR/"Data-*
         echo -e "$GREEN""$SYNCMSG1" "$RESET"
     else
