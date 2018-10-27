@@ -7,8 +7,7 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2018-09-25: clean_files() now archives simulation and synchronization results
-# by drive in a single log file.
+# 2018-10-27: unset with -v (treat as variable) option used. Citations added.
 #------------------------------------------------------------------------------
 
 # Define colors:
@@ -57,7 +56,7 @@ clean_files () {
     if [[ -d "$ARKDIR" ]]
     then
         mv /home/woods/backup_log-files/*"$NOW" "$ARKDIR"
-        cat "$ARKDIR/"Data-* > "$ARKDIR/""sim-sync_$NOW"  
+        cat "$ARKDIR/"Data-* > "$ARKDIR/""sim-sync_$NOW"
         rm -f "$ARKDIR/"Data-*
         echo -e "$GREEN""$SYNCMSG1" "$RESET"
     else
@@ -123,7 +122,9 @@ sync_control () {
         # Source: https://stackoverflow.com/questions/16860877/remove-an-element-from-a-bash-array
         if [[ "$created" -eq 0 ]] &&  [[ "$deleted" -eq 0 ]] && [[ "$xferred" -eq 0 ]]
         then
-            unset 'TARGET_LIST[i]'
+            # unset -v option source: http://wiki.bash-hackers.org/commands/builtin/unset
+            # See also Destruction: http://wiki.bash-hackers.org/syntax/arrays?s[]=array
+            unset -v 'TARGET_LIST[i]'
         fi
 
     done
