@@ -2,79 +2,65 @@
 
 # Author: Woods Wannamaker
 # Date: before 2016-05-22
-# Purpose: Simulates & reports Data drive files to sync with Data-2, -3, -4, -ext
-# (if mounted). Runs in cron to create an hourly report.
+# Purpose: rsync simulation of Data drive with mounted backup drives.
+# Report log created in cron hourly.
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2016-05-22 updated according to datasync script changes made this date.
-# 2016-05-29 updated to check source mount and exit if not mounted
-# 2016-09-30: changed EXCLUDE_LIST source file name. Updated with conditional
-# to check if Data source is mounted at start and exit if not.
-# 2016-11-14: updated with fixes from shellcheck 
-# 2017-04-03: changed exit code to 1 from 0 on Source not found error. Explicit
-# use of function in sync_control definition.
-# 2018-01-19: updated LOG file path and EXCLUDE_LIST path
-# 2018-02-08: Initial logic restructured. Exit with error codes updated. Block
-# print to LOG file. Check for exculde list added.
-# 2018-02-09: Message variables added. rsync command consistent with datasync
-# script format
+# 2018-12-28: Variable names now lower case.
 #------------------------------------------------------------------------------
 
-#DEFINE MESSAGES
-ERROR1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
-ERROR2="***** Exclusion list not found! Exiting...with error code: 2 *****"
+# Definitions
+source=/media/woods/Data/
+exclude_list=/home/woods/xlists/x-datasync
+simulation_log=/home/woods/_data-files-to-sync
+error1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
+error2="***** Exclusion list not found! Exiting...with error code: 2 *****"
 
-
-if ! (mountpoint -q /media/woods/Data); then
-    printf "\n%s\n\n" "$ERROR1"
+if ! (mountpoint -q "$source")
+then
+    printf "\n%s\n\n" "$error1"
     exit 1
+elif ! [[ -f "$exclude_list" ]]
+then
+    printf "\n%s\n\n" "$error2"
+    exit 2
 else
-    SOURCE=/media/woods/Data/
-    LOG=/home/woods/_data-files-to-sync
-    EXCLUDE_LIST=/home/woods/xlists/x-datasync
-    
-    if ! [[ -f "$EXCLUDE_LIST" ]]; then
-        printf "\n%s\n\n" "$ERROR2"
-        exit 2
-    fi
-    
     drive_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
-
-    printf "%s\n\n" "***** $(date -R) *****" > "$LOG"
+    printf "%s\n\n" "***** $(date -R) *****" > "$simulation_log"
 fi
 
 function sync_control () {
-# Simulates & reports synchronization of SOURCE drive with TARGET drive in drive_list.
+# Simulates & reports synchronization of source drive with target drive in drive_list.
 
     {
     
     for mount_point in "${drive_list[@]}"; do
     
-        TARGET=$mount_point/
+        target=$mount_point/
         
-        if ! (mountpoint -q "$SOURCE"); then
-            printf "\n%s\n\n" "$ERROR1"
+        if ! (mountpoint -q "$source"); then
+            printf "\n%s\n\n" "$error1"
             exit 1
-        elif ! (mountpoint -q "$TARGET"); then
-            printf "\n\n%s\n\n" "***** $TARGET Excluded. Drive NOT Mounted! *****"
+        elif ! (mountpoint -q "$target"); then
+            printf "\n\n%s\n\n" "***** $target Excluded. Drive NOT Mounted! *****"
         else
         ############################# RSYNC BLOCK #############################
         
-            printf "%s\n\n" "Data drive files to sync with $TARGET"
+            printf "%s\n\n" "Data drive files to sync with $target"
             
             rsync --dry-run -rpgDvOult --progress --delete --modify-window=1 \
-            --exclude-from=$EXCLUDE_LIST --human-readable --stats \
-            "$SOURCE" "$TARGET"
+            --exclude-from=$exclude_list --human-readable --stats \
+            "$source" "$target"
             
-            printf "%s\n\n"
+            printf "\n\n"
             
         ############################# RSYNC BLOCK #############################
         fi
         
     done
     
-    } >> "$LOG"
+    } >> "$simulation_log"
     
 return 0
 }
