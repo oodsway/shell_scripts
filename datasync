@@ -101,7 +101,7 @@ sync_control () {
             
             ${sync_type[$3]} -rpgDvOult --progress --delete --modify-window=1 \
             --exclude-from=$exclude_list --human-readable --stats \
-            "$source" "$target"
+            "$source" "$target" | grep -Ev '/$'
                                
             printf "\n"
             } | tee -a "$log_progress"
