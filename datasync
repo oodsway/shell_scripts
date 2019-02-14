@@ -7,7 +7,7 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2018-12-28: Variable names now lower case. Log archive simplified.
+# 2018-02-13: Added grep filter to supress full listing on some drives
 #------------------------------------------------------------------------------
 
 # Definitions:
