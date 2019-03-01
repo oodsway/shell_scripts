@@ -7,31 +7,19 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2017-06-04: deprecated previous version that writes tarlog since the same info is
-# available via: tar -ztvpf filename.tar.gz. Added check for target mount.
-# Renamed functions. Reworked tar command to remove /home/woods/ path.
-# 2018-01-19: simplified clean up. EXCLUDE_LIST path changed. && added in main()
-# to move only after create() succeeds. Added _ark-clean dir to clean_path after
-# tests.
-# 2018-02-08: check for EXCLUDE_LIST and clean_path at start; list reside in 
-# xlists & renamed. Initial logic restructured: if no drive, quit; if no list,
-# quit; if no clean_path, create. Functions renamed.
-# 2018-02-11: simplified remove_oldest_ark cmds. Error variables added. Added
-# check if oldest file exists before moving.
-# 2018-02-14: Automatically rm clean_path files when # files >= 7
-# 2018-02-16: Old archives deleted prior to calling main when files >= 7
+# 2019-02-28: updated paths to /media/woods/Data/ drive
 #------------------------------------------------------------------------------
 
 ERROR1="Target drive not mounted! Exiting...with error code: 1"
 ERROR2="Exclusion list not found! Exiting...with error code: 2"
 
-if ! (mountpoint -q /media/woods/Misc); then
+if ! (mountpoint -q /media/woods/Data); then
     printf "\n%s\n\n" "$ERROR1"
     exit 1
 else
     _NOW=$(date +%F_%H%M%S)
-    ark_path=/media/woods/Misc/home_targzip
-    clean_path=/media/woods/Misc/_ark-clean/
+    ark_path=/media/woods/Data/home_targzip
+    clean_path=/media/woods/Data/_ark-clean/
     EXCLUDE_LIST=/home/woods/xlists/x-home_ark    
 
     if ! [[ -f "$EXCLUDE_LIST" ]]; then
