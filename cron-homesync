@@ -5,21 +5,17 @@
 # Purpose: Reports home directory files that need to be synch'd. Runs in cron
 # to create an hourly report based on the following one-liner:
 #
-# rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=/home/woods/rsync/xclude-list.homesync /home/woods/ /media/woods/Misc/home_sync/ | grep -Ev '/$'
+# rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=/home/woods/rsync/xclude-list.homesync
+# /home/woods/ /media/woods/Data/home_sync/ | grep -Ev '/$'
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2016-09-30: changed EXCLUDE_LIST source file name. 
-# 2016-11-14: updated with fixes from shellcheck
-# 2018-01-18: egrep replaced with grep -E
-# 2018-01-19: updated LOG file path and EXCLUDE_LIST path.
-# 2018-02-09: rsync command consistent with datasync script format;
-# main() added.
+# 2019-02-28: Updated: TARGET paths /media/woods/Data drive
 #------------------------------------------------------------------------------
 
 EXCLUDE_LIST=/home/woods/xlists/x-homesync
 SOURCE=/home/woods/
-TARGET=/media/woods/Misc/home_sync/
+TARGET=/media/woods/Data/home_sync/
 LOG=/home/woods/_home-files-to-sync
 
 echo "***** $(date -R) *****" > "$LOG"
