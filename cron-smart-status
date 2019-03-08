@@ -6,21 +6,11 @@
 
 #--------------------------------------------------------------------------------------
 # Change Log
-# 2016-07-07: Post drive failure. Now creates an array of drives.
-# Report now includes drive information (-i) option.
-# 2016-09-09: Post WD2TB_black drive install. updated drive list to use sort -u option
-# updated shabang header
-# 2016-12-01: changed date format to comply with standards. Shellcheck updates:
-# quoting, use of tee command, printf statement & $divider variable
-# 2017-04-20: updated with block printing; added executive_summary function to capture
-# top-level view of daily status checks.
-# 2018-01-18: egrep replaced with grep -E
-# 2018-01-19: updated smart_sum log path 
-# 2018-02-11: executive_summary() using one awk command providing results grouped by drive
+# 2019-03-08: fdisk used to obtain mounted partitions
 #--------------------------------------------------------------------------------------
 
 LOG=/home/woods/SMART/_smart_status_$(date +%F_%T)
-drive_list=( $(mount | awk '/\/dev\/sd/ {print $1}' | sed 's/[0-9]//g' | sort -u) )
+drive_list=( $(sudo fdisk -l | awk '/\/dev\/sd.1/ {print $1}') )
 divider="-------------------------------------------------------------------------------------------------"
 
 get_status () {
@@ -29,7 +19,7 @@ get_status () {
     for drive in "${drive_list[@]}" ; do
         {
         printf '%s\n\n' "********** $drive SMART Status recorded: $(date) **********"
-        sudo smartctl -i -HA -l error -l selftest "$drive"
+        sudo smartctl -i -HA -l error "$drive"
         printf '%s\n\n\n' "$divider" 
         } >> "$LOG" 2> /dev/null
     done
