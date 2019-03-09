@@ -7,30 +7,10 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2016-09-15: re-wrote original code with while-loop based on length of list.
-# 2016-09-16-v2: kernel variable added to get last entry to print, removed -t flag
-# in read command to simplify logic block- was unnecessary.
-# Substitued case command instead of conditional block in previous version.
-# 2016-09-23: chaged get_kernels function format
-# 2016-12-06: restored get_kernels function format. Checked code using shellcheck.
-# Added array remove_list which contains list of kerenels to purge. Restructured
-# the case-block & added new case-block for purge. Improved printing format.
-# 2016-12-06-2: re-structured with main function. Added select_kernels function
-# Choice to remove ALL, SELECTED or EXIT
-# 2016-12-15: added ANSI color format print statements from climagic video.
-# https://en.wikipedia.org/wiki/ANSI_escape_code#Platform_support
-# 2016-12-19: added variables for ANSI color control
-# 2017-01-03: added keep_list; colorized selection display; added status_report
-# function; added final choice to proceed or abort
-# 2017-02-03: Improved main() while loops and case menus. Added YELLOW color.
-# 2017-02-06: fixed fail to exit issue. remove list appears first in status_report
-# menus are consistent for quit selection.
-# 2018-01-18: egrep replaced with grep -E. Regex simplified.
-# 2018-01-18: awk one-liner replaces 2 grep & one awk. uname -r used to get cuurent_kernel
-# Installed kernels shown in green if rc list empty before exit. remove and keep lists
-# created when rc_kernel_list not empty.
-# 2018-02-16: added countdown display menu before removal. Fixed failed exit
-# on apt-get abort option.
+# 2019-03-09: removed change log history. Deprecated use in favor of aliases:
+# alias rccheck='dpkg -l | grep ^rc | awk '\''{print $2}'\'''
+# alias rcpurge='sudo apt-get remove --purge $(dpkg -l | grep ^rc | \
+# awk '\''{print $2}'\'' | tr '\''\n'\'' '\'' '\'')'
 #------------------------------------------------------------------------------
 
 clear
