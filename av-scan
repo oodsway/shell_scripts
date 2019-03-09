@@ -3,28 +3,45 @@
 # Author: Woods Wannamaker
 # Date: before 2016-12-01
 # Purpose: Performs virus scan of system (with exclusions) and writes 
-# results to LOG file. Runs in cron:  ~$ sudo crontab -l to see schedule.
+# results to LOG file. Runs in cron: ~$ sudo crontab -l to see schedule.
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2016-12-01: shellcheck updates. changed date format to standard.
-# 2017-02-04: simplified exclusions by using proper REGEX format: w/ quotes
-# 2017-03-23: LOG defined in one-line; printf to LOG using {cmd;cmd} &
-# stderr sent to dev/null; removed function main & call scan directly.
-# 2017-06-06: removed --bell option.
+# 2019-03-09: Perform home scan daily; root scan weekly on Sunday
 #------------------------------------------------------------------------------
 
-LOG=/home/woods/clamscan/_av_scan_$(date +%F_%T)
-
-function scan_system () {
-# Performs virus scan of system (with exclusions) and writes results to LOG file.
+home-scan () 
+{
+# Performs virus scan of $HOME and writes results to LOG file.
     {
-    printf '%s\n\n' "Scan started: $(date)"
-    tail /var/log/clamav/freshclam.log
-    sudo clamscan -ir / --exclude-dir='^/(cdrom|dev|media|mnt|proc|snap|srv|sys)'
-    printf '\n%s\n\n'  "Scan completed: $(date)"
+    printf '%s\n' "Scan started: $(date +%F_%T)"
+    sudo clamscan -ir /home/woods/
+    printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
 return 0
 }
 
-scan_system
+root-scan () 
+{
+# Performs virus scan of / (with exclusions) and writes results to LOG file.
+    {
+    printf '%s\n\n' "Scan started: $(date +%F_%T)"
+    tail /var/log/clamav/freshclam.log
+    sudo clamscan -ir / --exclude-dir='^/(cdrom|dev|media|mnt|proc|snap|srv|sys)'
+    printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
+    } >> "$LOG" 2> /dev/null
+return 0
+}
+
+dow=$(date +%w)
+if [[ "$dow" = 0 ]]
+then
+    LOG=/home/woods/clamscan/_av-scan-weekly_$(date +%F_%T)
+    root-scan
+else
+    LOG=/home/woods/_av-scan-daily.txt
+    rm -f "$LOG"
+    home-scan
+fi
+sudo chown woods:woods "$LOG"
+
