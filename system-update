@@ -6,11 +6,7 @@
 # display and log file.
 # 
 #------------------------------------------------------------------------------
-# 2016-11-30: added option for upgrade type
-# 2016-12-09: changed prompt & added exit option
-# 2017-02-06: menu handled with while loop & added final log message
-# 2017-04-05: added menu function; changed script name
-# 2017-04-28: added option [3] aptitude safe-upgrade; removed .sh in filename
+# 2019-03-09: Renamed file; removed change log history. Deprecated use. 
 #------------------------------------------------------------------------------
 
 LOG=/home/woods/system_updates/system_update_$(date +%F_%T)
