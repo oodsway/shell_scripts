@@ -6,11 +6,7 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2017-07-09: 172.18.2.x added to network
-# 2017-07-11: 192.168.3.x added to network
-# 2017-12-28: removed 172.x.x.x.; 10.x.x.x & ping of google added
-# 2017-12-29: generalized with one loop & passing net and hosts to function
-# 2018-02-17: modified according to netcheck, but reports failure, if any
+# 2019-03-09: filename change; change log history removed
 #------------------------------------------------------------------------------
 
 clear
