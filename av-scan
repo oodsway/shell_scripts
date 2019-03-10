@@ -7,7 +7,7 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-03-09: Perform home scan daily; root scan weekly on Sunday
+# 2019-03-10: removed sudo; script runs in sudo crontab
 #------------------------------------------------------------------------------
 
 home-scan () 
@@ -15,7 +15,7 @@ home-scan ()
 # Performs virus scan of $HOME and writes results to LOG file.
     {
     printf '%s\n' "Scan started: $(date +%F_%T)"
-    sudo clamscan -ir /home/woods/
+    clamscan -ir /home/woods/
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
 return 0
@@ -27,7 +27,7 @@ root-scan ()
     {
     printf '%s\n\n' "Scan started: $(date +%F_%T)"
     tail /var/log/clamav/freshclam.log
-    sudo clamscan -ir / --exclude-dir='^/(cdrom|dev|media|mnt|proc|snap|srv|sys)'
+    clamscan -ir / --exclude-dir='^/(cdrom|dev|media|mnt|proc|snap|srv|sys)'
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
 return 0
@@ -43,5 +43,5 @@ else
     rm -f "$LOG"
     home-scan
 fi
-sudo chown woods:woods "$LOG"
+chown woods:woods "$LOG"
 
