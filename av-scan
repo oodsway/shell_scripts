@@ -7,7 +7,8 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-03-10: removed sudo; script runs in sudo crontab
+# 2019-03-10: removed sudo; script runs in sudo crontab. Added
+# conditional to check if daily log exists before removal.
 #------------------------------------------------------------------------------
 
 home-scan () 
@@ -40,7 +41,10 @@ then
     root-scan
 else
     LOG=/home/woods/_av-scan-daily.txt
-    rm -f "$LOG"
+    if [[ -e "$LOG" ]]
+    then
+        rm -f "$LOG"
+    fi
     home-scan
 fi
 chown woods:woods "$LOG"
