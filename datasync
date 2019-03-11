@@ -7,13 +7,15 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-02-13: Added grep filter to supress full listing on some drives
+# 2019-03-11: Added ark_path variable. Check failure points before start-up.
+# Restructured clean_files ()
 #------------------------------------------------------------------------------
 
 # Definitions:
 source=/media/woods/Data/
 sync_type=( "rsync --dry-run" "rsync " )
 exclude_list=/home/woods/xlists/x-datasync
+ark_path=/home/woods/backup_log-files/
 ark_dir=/home/woods/backup_log-files/backups_completed/
 
 # Colors:
@@ -25,45 +27,27 @@ reset="\033[0m"
 
 # Messages:
 error1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
-error2="***** Exclusion list not found! Exiting...with error code: 2 *****"
-banner1="The following target drives will be compared with the source drive: "
+error2="***** Exclusion list not found! Exiting with error code: 2 *****"
+error3="***** Working directory not found! Exiting with error code 3 *****"
+banner1="The following target drives will be compared with the source drive:"
 sim_msg1="Simulation complete. The following drive(s) need to be synchronized:"
-sim_msg2="Simulation complete. No Files to Synchronize. Logs removed. Exiting."
-sync_msg1="Synchronization complete. Log files have been archived."
-sync_msg2="Synchronization complete. Log files could NOT be archived. Check Directory Path/Name."
+sim_msg2="Simulation complete. Nothing to synchronize. Log files removed."
+sync_msg="Synchronization complete. Log files have been archived."
 abort_msg="***** Process Aborted by User *****"
 
-if ! (mountpoint -q "$source")
-then
-    printf "\n%b%s%b\n\n"  "$red" "$error1" "$reset"
-    exit 1
-elif ! [[ -f "$exclude_list" ]]
-then
-    printf "\n%b%s%b\n\n" "$red" "$error2" "$reset"
-    exit 2
-else
-    target_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
-    now=$(date +%F_%T)
-fi
-
 clean_files () {
-# Function archives a session log in backups_completed directory
+# Function: combines and archives log files.
+    
+    cat "$ark_path"Data-* > "$ark_path""$now""_sync-log.txt"
+    rm -f "$ark_path"Data-*
+    mv "$ark_path""$now""_sync-log.txt" "$ark_dir"
+    echo -e "$green""$sync_msg" "$reset"
 
-    if [[ -d "$ark_dir" ]]
-    then
-        mv /home/woods/backup_log-files/*"$now" "$ark_dir"
-        cat "$ark_dir"Data-* > "$ark_dir""$now""_sync-log.txt"
-        rm -f "$ark_dir"Data-*
-        echo -e "$green""$sync_msg1" "$reset"
-    else
-        echo -e "$yellow""$sync_msg2" "$reset"
-    fi
- 
 return 0
 }
 
 sync_control () {
-# Function simulates or processes rsync synchronization with any drives that may be mounted
+# Function: simulates or processes rsync synchronization with any drives that may be mounted
 
     local temp_array=( )
     local list_len="${#target_list[@]}"
@@ -76,7 +60,7 @@ sync_control () {
         
         # Build log_filename for log_progress from target path
         log_filename=$(basename "$target" )_$1_$now
-        log_progress=/home/woods/backup_log-files/"${log_filename}"
+        log_progress="$ark_path""${log_filename}"
         echo "***** $(date -R) *****" > "$log_progress"        
                 
         # Terminate if source drive not mounted. This is an extra check.              
@@ -138,7 +122,7 @@ return 0
 }
 
 main () {
-# Function controls overall program flow. Calls sync_control function; displays process messages.
+# Function: controls program flow.
 
     clear
     echo -e "$white""$banner1""$source" "$reset"
@@ -154,7 +138,7 @@ main () {
     if [[ "${#target_list[@]}" -eq 0 ]]
     then
         echo -e "$green""$sim_msg2 $reset"
-        rm -f /home/woods/backup_log-files/*"$now"
+        rm -f "$ark_path"*"$now"
     else
         echo -e "$green""$sim_msg1" "$reset"
         for i in "${!target_list[@]}"
@@ -175,7 +159,7 @@ main () {
                     ;;
                 "q")
                     printf "\n%b%s%b\n\n" "$yellow" "$abort_msg" "$reset"
-                    rm -f /home/woods/backup_log-files/*"$now"
+                    rm -f "$ark_path"*"$now"
                     break
                     ;;
                 *) echo invalid response;;
@@ -186,4 +170,22 @@ main () {
 return 0
 }
 
-main
+# Check failure points before start-up.
+if ! (mountpoint -q "$source")
+then
+    printf "\n%b%s%b\n\n"  "$red" "$error1" "$reset"
+    exit 1
+elif ! [[ -f "$exclude_list" ]]
+then
+    printf "\n%b%s%b\n\n" "$red" "$error2" "$reset"
+    exit 2
+elif ! [[ -d "$ark_path" ]] || ! [[ -d "$ark_dir" ]]
+then
+    printf "\n%b%s%b\n\n" "$red" "$error3" "$reset"
+    exit 3
+else
+    target_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
+    now=$(date +%F_%T)
+    main
+fi
+
