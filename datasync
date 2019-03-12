@@ -3,12 +3,34 @@
 # Author: Woods Wannamaker
 # Date: 2016-05-03
 # Purpose: Simulates Data drive rsync synchronization then provides 
-# option to perform synchronization.
+# option to perform synchronization. The following rsync flags are used:
+# 
+#     -n -avhiOu = -n -rlptgoD -vhiOu
+# 
+#         -n = --dry-run perform a trial run with no changes made
+#         -a = -rlptgoD
+#             -r = --recursive recurse into directories
+#             -l = --links copy symlinks as symlinks
+#             -p = --perms preserve permissions
+#             -t = --times preserve modification times
+#             -g = --group preserve group
+#             -o = --owmer preserve owner (super-user only)
+#             -D = same as --devices --specials
+#                 --devices preserve device files (super-user only)
+#                 --specials preserve special files
+#         -v = --verbose increase verbosity
+#         -h = --human-readable
+#         -i = --itemize-changes
+#         -O = --omit-dir-times
+#         -u = --update skip files that are newer on the receiver
+# 
+# Sources: http://manpages.ubuntu.com/manpages/bionic/man1/rsync.1.html
+#          https://linux.die.net/man/1/rsync
+#          https://stackoverflow.com/questions/4493525/
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-03-11: Added ark_path variable. Check failure points before start-up.
-# Restructured clean_files ()
+# 2019-03-12: Updated rsync flags used; added flag reference info.
 #------------------------------------------------------------------------------
 
 # Definitions:
@@ -83,9 +105,8 @@ sync_control () {
             {
             echo -e "$green$2 $target with $source $reset"
             
-            ${sync_type[$3]} -rpgDvOult --progress --delete --modify-window=1 \
-            --exclude-from=$exclude_list --human-readable --stats \
-            "$source" "$target" | grep -Ev '/$'
+            ${sync_type[$3]} -avhiOu --progress --stats --delete \
+            --exclude-from=$exclude_list "$source" "$target" #| grep -Ev '/$'
                                
             printf "\n"
             } | tee -a "$log_progress"
