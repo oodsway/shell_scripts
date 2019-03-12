@@ -106,7 +106,7 @@ sync_control () {
             echo -e "$green$2 $target with $source $reset"
             
             ${sync_type[$3]} -avhiOu --progress --stats --delete \
-            --exclude-from=$exclude_list "$source" "$target" #| grep -Ev '/$'
+            --exclude-from=$exclude_list "$source" "$target"
                                
             printf "\n"
             } | tee -a "$log_progress"
