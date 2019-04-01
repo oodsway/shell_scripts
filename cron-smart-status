@@ -39,7 +39,7 @@ get_summary () {
     {
     awk '/\/dev\/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On/ {print $0}
     /LBAs_Written/ {printf "%s%69s%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024, " GiB"}
-    /Errors/ {printf "%s\n\n", $0}' "$LOG"
+    /Errors|Error Count:/ {printf "%s\n\n", $0}' "$LOG"
     } >> "$smart_sum"
 
 return 0
