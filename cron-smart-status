@@ -6,7 +6,7 @@
 
 #--------------------------------------------------------------------------------------
 # Change Log
-# 2019-03-14: added sort to drive_list command
+# 2019-04-01: updated regex in awk to capture error count
 #--------------------------------------------------------------------------------------
 
 LOG=/home/woods/SMART/_smart_status_$(date +%F_%T)
