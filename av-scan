@@ -7,8 +7,8 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-03-10: removed sudo; script runs in sudo crontab. Added
-# conditional to check if daily log exists before removal.
+# 2019-04-09: Corrected syntax and updated --exclude-dir list for root-scan. 
+# Simplified test for daily log prior to home-scan.
 #------------------------------------------------------------------------------
 
 home-scan () 
@@ -16,6 +16,7 @@ home-scan ()
 # Performs virus scan of $HOME and writes results to LOG file.
     {
     printf '%s\n' "Scan started: $(date +%F_%T)"
+    tail /var/log/clamav/freshclam.log
     clamscan -ir /home/woods/
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
@@ -28,7 +29,7 @@ root-scan ()
     {
     printf '%s\n\n' "Scan started: $(date +%F_%T)"
     tail /var/log/clamav/freshclam.log
-    clamscan -ir / --exclude-dir='^/(cdrom|dev|media|mnt|proc|snap|srv|sys)'
+    clamscan -ir --exclude-dir='^/(cdrom|dev|home|media|mnt|proc|snap|srv|sys)' /
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
 return 0
@@ -37,15 +38,11 @@ return 0
 dow=$(date +%w)
 if [[ "$dow" = 0 ]]
 then
-    LOG=/home/woods/clamscan/_av-scan-weekly_$(date +%F_%T)
+    LOG=/home/woods/clamscan/_$(date +%F_%T)_avscan-root.txt
     root-scan
 else
-    LOG=/home/woods/_av-scan-daily.txt
-    if [[ -e "$LOG" ]]
-    then
-        rm -f "$LOG"
-    fi
+    LOG=/home/woods/_avscan-home.txt
+    [[ -e "$LOG" ]] && rm -f "$LOG"
     home-scan
 fi
 chown woods:woods "$LOG"
-
