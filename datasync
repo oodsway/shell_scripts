@@ -30,7 +30,7 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-03-12: Updated rsync flags used; added flag reference info.
+# 2019-04-10: Updated ark_dir path
 #------------------------------------------------------------------------------
 
 # Definitions:
@@ -38,7 +38,7 @@ source=/media/woods/Data/
 sync_type=( "rsync --dry-run" "rsync " )
 exclude_list=/home/woods/xlists/x-datasync
 ark_path=/home/woods/backup_log-files/
-ark_dir=/home/woods/backup_log-files/backups_completed/
+ark_dir=/home/woods/backup_log-files/completed/
 
 # Colors:
 red="\033[0;31m"
