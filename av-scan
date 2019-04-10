@@ -7,16 +7,15 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-04-09: Corrected syntax and updated --exclude-dir list for root-scan. 
-# Simplified test for daily log prior to home-scan.
+# 2019-04-10: Updated scan report format. 
 #------------------------------------------------------------------------------
 
 home-scan () 
 {
 # Performs virus scan of $HOME and writes results to LOG file.
     {
-    printf '%s\n' "Scan started: $(date +%F_%T)"
     tail /var/log/clamav/freshclam.log
+    printf '\n\n%s\n' "Scan started: $(date +%F_%T)"
     clamscan -ir /home/woods/
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
@@ -27,8 +26,8 @@ root-scan ()
 {
 # Performs virus scan of / (with exclusions) and writes results to LOG file.
     {
-    printf '%s\n\n' "Scan started: $(date +%F_%T)"
     tail /var/log/clamav/freshclam.log
+    printf '\n\n%s\n' "Scan started: $(date +%F_%T)"
     clamscan -ir --exclude-dir='^/(cdrom|dev|home|media|mnt|proc|snap|srv|sys)' /
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
