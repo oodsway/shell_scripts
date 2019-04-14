@@ -7,7 +7,7 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-04-10: Updated scan report format. 
+# 2019-04-14: Updated to scan root only on first Sunday of month.
 #------------------------------------------------------------------------------
 
 home-scan () 
@@ -16,7 +16,7 @@ home-scan ()
     {
     tail /var/log/clamav/freshclam.log
     printf '\n\n%s\n' "Scan started: $(date +%F_%T)"
-    clamscan -ir /home/woods/
+    clamscan -ir /home/woods/bin
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
 return 0
@@ -25,17 +25,21 @@ return 0
 root-scan () 
 {
 # Performs virus scan of / (with exclusions) and writes results to LOG file.
+
+    local x_list='^/(cdrom|dev|home|media|mnt|proc|snap|srv|sys)'
+
     {
     tail /var/log/clamav/freshclam.log
     printf '\n\n%s\n' "Scan started: $(date +%F_%T)"
-    clamscan -ir --exclude-dir='^/(cdrom|dev|home|media|mnt|proc|snap|srv|sys)' /
+    clamscan -ir --exclude-dir="$x_list" /
     printf '\n%s\n'  "Scan completed: $(date +%F_%T)"
     } >> "$LOG" 2> /dev/null
 return 0
 }
 
 dow=$(date +%w)
-if [[ "$dow" = 0 ]]
+dom=$(date +%d)
+if [[ "$dow" -eq 0 ]] && [[ "$dom" -le 7 ]]
 then
     LOG=/home/woods/clamscan/_$(date +%F_%T)_avscan-root.txt
     root-scan
