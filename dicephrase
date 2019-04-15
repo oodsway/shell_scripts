@@ -5,6 +5,11 @@
 # Date: 2018-07-17
 # Purpose: A simple diceware passphrase algorithm using EFF large word list.
 # Source: https://www.eff.org/dice
+#
+#------------------------------------------------------------------------------
+# Change Log
+# 2019-04-15: Added /dev/urandom for random number generation.
+#------------------------------------------------------------------------------
 
 ########################## BRIEF INSTRUCTIONS ##########################
 # Run dicephrase with or without options
@@ -15,7 +20,7 @@
 # will generate 30 phrases with 7 words_per_phrase
 
 # with a single option (words_per_phrase) specified:
-# ~$: ./dicephrase 8 
+# ~$: ./dicephrase 8
 # will generate 1 phrase with 8 words_per_phrase
 
 # with a single option (number_of_phrases) specified:
@@ -24,7 +29,7 @@
 
 # without options
 # ~$: ./dicephrase
-# will generate the default: 1 phrase with 6 words_per_phrase   
+# will generate the default: 1 phrase with 6 words_per_phrase
 ########################################################################
 
 words_per_phrase=${1:-6}
@@ -41,8 +46,10 @@ eff_url="https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
 
 net_test=$(ping -c1 -W1 8.8.8.8 > /dev/null 2>&1 && echo $?)
 
-if [ ! -f  "${wordlist}" ]; then 
-    if [ "$net_test" == 0 ]; then
+if [ ! -f  "${wordlist}" ]
+then
+    if [ "$net_test" == 0 ]
+    then
         wget -a "$dicelog" -P "$download_path" "${eff_url}"
     else
         printf '%s\n' "Error! An internet connection required to download word list."
@@ -51,10 +58,14 @@ if [ ! -f  "${wordlist}" ]; then
 fi
 
 roll_dice () {
+# generate-random-numbers-in-specific-range
+# Source: https://unix.stackexchange.com/questions/140750/
 
     for ((i==1; i<number_of_dice; i++))
     do
-        rolls+=$(( RANDOM % 6 + 1 ))
+#         rolls+=$(( RANDOM % 6 + 1 ))
+#         rolls+=$(shuf -i 1-6 -n 1)
+        rolls+=$(head -100 /dev/urandom | tr -dc '1-6' | fold -w 1 | head -n 1)
     done
      
     echo "$rolls"
@@ -68,7 +79,8 @@ get_phrase () {
     do
         key=$(roll_dice)
 
-        if [ "$( grep -c "$key"  "$wordlist" )" -eq 1 ];then
+        if [ "$( grep -c "$key"  "$wordlist" )" -eq 1 ]
+        then
             keys+=( "$key" )
             word=$(awk -v val="$key" '{ if ($1==val)  {print $2} }' "$wordlist")
             phrase+=( "$word" )
@@ -83,7 +95,7 @@ for ((c==1; c<number_of_phrases; c++))
 do
     get_phrase
 
-# Un-comment to show keys
+# Uncomment to show keys
 #     printf '%s\n' "${keys[*]}"
     printf '%s\n' "${phrase[*]}"
     
