@@ -30,7 +30,7 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-04-10: Updated ark_dir path
+# 2019-05-02: Added missing quotes.
 #------------------------------------------------------------------------------
 
 # Definitions:
@@ -106,7 +106,7 @@ sync_control () {
             echo -e "$green$2 $target with $source $reset"
             
             ${sync_type[$3]} -avhiOu --progress --stats --delete \
-            --exclude-from=$exclude_list "$source" "$target"
+            --exclude-from="$exclude_list" "$source" "$target"
                                
             printf "\n"
             } | tee -a "$log_progress"
