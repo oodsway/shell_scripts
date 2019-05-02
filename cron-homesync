@@ -5,30 +5,26 @@
 # Purpose: Reports home directory files that need to be synch'd. Runs in cron
 # to create an hourly report based on the following one-liner:
 #
-# rsync -n -rpgDvOult --progress --delete --modify-window=1 --exclude-from=/home/woods/rsync/xclude-list.homesync
-# /home/woods/ /media/woods/Data/home_sync/ | grep -Ev '/$'
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-02-28: Updated: TARGET paths /media/woods/Data drive
+# 2019-05-02: Refactored. Updated rsync flags, variable names.
 #------------------------------------------------------------------------------
 
-EXCLUDE_LIST=/home/woods/xlists/x-homesync
-SOURCE=/home/woods/
-TARGET=/media/woods/Data/home_sync/
-LOG=/home/woods/_home-files-to-sync
+exclude_list=/home/woods/xlists/x-homesync
+source=/home/woods/
+target=/media/woods/Data/home_sync/
+sim_log=/home/woods/_home-files-to-sync
 
-echo "***** $(date -R) *****" > "$LOG"
+echo "***** $(date -R) *****" > "$sim_log"
 
 main () {
 
     {
     echo
-    rsync --dry-run -rpgDvOult --progress --delete --modify-window=1 \
-    --exclude-from=$EXCLUDE_LIST --human-readable --stats \
-    "$SOURCE" "$TARGET" | grep -Ev '/$'
-
-    } >> "$LOG"
+    rsync -n -avhiOu --progress --stats --delete \
+    --exclude-from="$exclude_list" "$source" "$target"
+    } >> "$sim_log"
 
 }
 
