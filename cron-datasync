@@ -7,13 +7,13 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2018-12-28: Variable names now lower case.
+# 2019-05-02: Refactored. Updated rsync flags, variable names.
 #------------------------------------------------------------------------------
 
 # Definitions
 source=/media/woods/Data/
 exclude_list=/home/woods/xlists/x-datasync
-simulation_log=/home/woods/_data-files-to-sync
+sim_log=/home/woods/_data-files-to-sync
 error1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
 error2="***** Exclusion list not found! Exiting...with error code: 2 *****"
 
@@ -27,7 +27,7 @@ then
     exit 2
 else
     drive_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
-    printf "%s\n\n" "***** $(date -R) *****" > "$simulation_log"
+    printf "%s\n\n" "***** $(date -R) *****" > "$sim_log"
 fi
 
 function sync_control () {
@@ -49,9 +49,8 @@ function sync_control () {
         
             printf "%s\n\n" "Data drive files to sync with $target"
             
-            rsync --dry-run -rpgDvOult --progress --delete --modify-window=1 \
-            --exclude-from=$exclude_list --human-readable --stats \
-            "$source" "$target"
+            rsync -n -avhiOu --progress --stats --delete \
+            --exclude-from="$exclude_list" "$source" "$target"
             
             printf "\n\n"
             
@@ -60,7 +59,7 @@ function sync_control () {
         
     done
     
-    } >> "$simulation_log"
+    } >> "$sim_log"
     
 return 0
 }
