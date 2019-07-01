@@ -30,7 +30,7 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-05-02: Added missing quotes.
+# 2019-07-01: Only archive sync logfiles
 #------------------------------------------------------------------------------
 
 # Definitions:
@@ -58,9 +58,9 @@ sync_msg="Synchronization complete. Log files have been archived."
 abort_msg="***** Process Aborted by User *****"
 
 clean_files () {
-# Function: combines and archives log files.
+# Function: combines and archives sync log files.
     
-    cat "$ark_path"Data-* > "$ark_path""$now""_sync-log.txt"
+    cat "$ark_path"*sync* > "$ark_path""$now""_sync-log.txt"
     rm -f "$ark_path"Data-*
     mv "$ark_path""$now""_sync-log.txt" "$ark_dir"
     echo -e "$green""$sync_msg" "$reset"
