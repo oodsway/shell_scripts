@@ -7,7 +7,7 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-07-14: removed user variable
+# 2019-07-15: removed user variable
 #------------------------------------------------------------------------------
 
 home-scan () 
@@ -16,7 +16,7 @@ home-scan ()
     {
     tail /var/log/clamav/freshclam.log
     printf '\n\n%s\n' "home-scan started: $(date +%F_%T)"
-    clamscan -ir /home
+    clamscan -ir /home/woods
     printf '\n%s\n'  "home-scan completed: $(date +%F_%T)"
     } >> "$LOG" 2>/dev/null
 return 0
