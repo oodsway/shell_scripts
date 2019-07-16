@@ -7,16 +7,16 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-07-15: removed user variable
+# 2019-07-16: home-scan path updated
 #------------------------------------------------------------------------------
 
 home-scan () 
 {
-# Performs virus scan of /home/$user/ and writes results to LOG file.
+# Performs virus scan of /home and writes results to LOG file.
     {
     tail /var/log/clamav/freshclam.log
     printf '\n\n%s\n' "home-scan started: $(date +%F_%T)"
-    clamscan -ir /home/woods
+    clamscan -ir /home
     printf '\n%s\n'  "home-scan completed: $(date +%F_%T)"
     } >> "$LOG" 2>/dev/null
 return 0
