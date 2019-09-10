@@ -6,7 +6,7 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-03-09: filename change; change log history removed
+# 2019-09-10: updated ip addresss to test
 #------------------------------------------------------------------------------
 
 clear
@@ -34,4 +34,5 @@ ping_monet "10.0.0" "1" && echo
 ping_monet "192.168.3" "1 2 3 5 10 14" && echo
 ping_monet "192.168.20" "1 105" && echo
 ping_monet "192.168.30" "1" && echo
-ping_monet "172.18.2" "1"
+ping_monet "192.168.50" "1" && echo
+
