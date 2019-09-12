@@ -20,7 +20,7 @@ for host in $2
 do
     ip="$1.$host"
     ( ping -c1 -W1 "$ip" > /dev/null 2>&1 && \
-	    printf '%-16s%s\n' "$ip" "success" ) &
+    printf '%-16s%s\n' "$ip" "success" ) &
 done
 wait
     
