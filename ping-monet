@@ -6,7 +6,7 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-09-12: removed failure reporting; added sequence for subnets 
+# 2019-09-12: removed failure reporting; added sequence for subnets.
 #------------------------------------------------------------------------------
 
 clear
