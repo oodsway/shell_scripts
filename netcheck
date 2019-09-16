@@ -10,6 +10,7 @@
 # 2018-01-23: fork of ping_monet, modified based on the following article:
 # https://www.shellscript.sh/tips/ping/
 # 2018-02-17: printf & format changes, function call with google.com for DNS check 
+# 2019-09-16: added 1.1.1.1 and 9.9.9.9 check
 #------------------------------------------------------------------------------
 
 clear
@@ -29,7 +30,9 @@ wait
 return 0
 }
 
+net_check "google" "com"
+net_check "1.1.1" "1"
 net_check "8.8.8" "8"
-net_check "google" "com" && echo
+net_check "9.9.9" "9" && echo
 net_check "10.0.0" "1" && echo
 net_check "192.168.3" "$(seq 0 254)"
