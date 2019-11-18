@@ -6,14 +6,13 @@
 #
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-09-12: removed failure reporting; added sequence for subnets.
+# 2019-11-18: updated function comments; DNS check performed first.
 #------------------------------------------------------------------------------
 
 clear
 
 ping_monet () {
-# Function: Performs 1 sec background ping in separate background processes
-# then displays message if ip was reached or failed. Checks DNS resolution.
+# Checks DNS resolution then performs 1 sec background ping in separate background processes.
 # Source: https://www.shellscript.sh/tips/ping/
 
 for host in $2
@@ -27,8 +26,8 @@ wait
 return 0
 }
 
-ping_monet "8.8.8" "8"
-ping_monet "google" "com" && echo
+ping_monet "google" "com" 
+ping_monet "8.8.8" "8" && echo
 ping_monet "10.0.0" "1" && echo
 ping_monet "192.168.3" "$(seq 1 254)" && echo
 ping_monet "192.168.20" "$(seq 1 254)" && echo
