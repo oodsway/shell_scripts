@@ -6,10 +6,11 @@
 
 #--------------------------------------------------------------------------------------
 # Change Log
-# 2019-11-12: added color output to summary report and changed smart_sum filename.
+# 2020-01-02: Reports Total_LBA in TiB to 2 decimal places; incls Wear_count
+# Generalized for $USER; Reformatted log filename. Removed local declaration
 #--------------------------------------------------------------------------------------
 
-LOG=/home/woods/SMART/_smart_status_$(date +%F_%T)
+LOG=/home/$USER/SMART/$(date +%F_%H%M%S)_smart-status.txt
 drive_list=( $(sudo fdisk -l | awk '/\/dev\/sd.1/ {print $1}' | sort -u) )
 divider="-------------------------------------------------------------------------------------------------"
 
@@ -37,15 +38,15 @@ get_summary () {
     fi
     
     {
-    awk '/\/dev\/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On/ {print $0}
-    /LBAs_Written/ {printf "%s%69s%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024, " GiB"}
+    awk '/\/dev\/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On|Wear/ {print $0}
+    /LBAs_Written/ {printf "%s%69.2f%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024/1024, " TiB"}
     /Errors|Error Count:/ {printf "%s\n\n", $0}' "$LOG"
     } >> "$smart_sum"
     
     # colorize keywords in summary report
     # Source: https://unix.stackexchange.com/questions/45924/
     
-    local esc=$(printf '\033')
+    esc=$(printf '\033')
     sed -i -e "s/PASSED/${esc}[32m&${esc}[0m/" -e "s/No Errors Logged/${esc}[32m&${esc}[0m/" "$smart_sum"
 
 return 0
