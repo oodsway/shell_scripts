@@ -31,7 +31,7 @@ return 0
 get_summary () {
 # Creates a summary of critical SMART attributes organized by drive.
 
-    smart_sum=/home/woods/smart_summary.txt
+    smart_sum=/home/$USER/smart_summary.txt
     
     if [ -e "$smart_sum" ]; then
         rm -f "$smart_sum"
@@ -57,7 +57,7 @@ main () {
 
     get_status
     get_summary
-    sudo chown woods:woods "$LOG" "$smart_sum"
+    sudo chown "$USER":"$USER" "$LOG" "$smart_sum"
     
 return 0
 }
