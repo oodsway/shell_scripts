@@ -6,11 +6,10 @@
 
 #--------------------------------------------------------------------------------------
 # Change Log
-# 2020-01-02: Reports Total_LBA in TiB to 2 decimal places; incls Wear_count
-# Generalized for $USER; Reformatted log filename. Removed local declaration
+# 2020-01-03: reset explicit user path since script runs in cron as root.
 #--------------------------------------------------------------------------------------
 
-LOG=/home/$USER/SMART/$(date +%F_%H%M%S)_smart-status.txt
+LOG=/home/woods/SMART/$(date +%F_%H%M%S)_smart-status.txt
 drive_list=( $(sudo fdisk -l | awk '/\/dev\/sd.1/ {print $1}' | sort -u) )
 divider="-------------------------------------------------------------------------------------------------"
 
@@ -31,7 +30,7 @@ return 0
 get_summary () {
 # Creates a summary of critical SMART attributes organized by drive.
 
-    smart_sum=/home/$USER/smart_summary.txt
+    smart_sum=/home/woods/smart_summary.txt
     
     if [ -e "$smart_sum" ]; then
         rm -f "$smart_sum"
@@ -57,7 +56,7 @@ main () {
 
     get_status
     get_summary
-    sudo chown "$USER":"$USER" "$LOG" "$smart_sum"
+    sudo chown woods:woods "$LOG" "$smart_sum"
     
 return 0
 }
