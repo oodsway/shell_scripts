@@ -30,7 +30,7 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-07-01: Only archive sync logfiles
+# 2019-04-29: clean_files writes directly to ark_dir; all logs are .txt
 #------------------------------------------------------------------------------
 
 # Definitions:
@@ -60,9 +60,8 @@ abort_msg="***** Process Aborted by User *****"
 clean_files () {
 # Function: combines and archives sync log files.
     
-    cat "$ark_path"*sync* > "$ark_path""$now""_sync-log.txt"
-    rm -f "$ark_path"Data-*
-    mv "$ark_path""$now""_sync-log.txt" "$ark_dir"
+    cat "$ark_path"*sync* > "$ark_dir""$now""_sync-log.txt"
+    rm -f "$ark_path"*"$now.txt"
     echo -e "$green""$sync_msg" "$reset"
 
 return 0
@@ -81,7 +80,7 @@ sync_control () {
         target="${mount_list[i]}/"
         
         # Build log_filename for log_progress from target path
-        log_filename=$(basename "$target" )_$1_$now
+        log_filename="$(basename "$target" )_$1_$now.txt"
         log_progress="$ark_path""${log_filename}"
         echo "***** $(date -R) *****" > "$log_progress"        
                 
@@ -159,7 +158,7 @@ main () {
     if [[ "${#target_list[@]}" -eq 0 ]]
     then
         echo -e "$green""$sim_msg2 $reset"
-        rm -f "$ark_path"*"$now"
+        rm -f "$ark_path"*"$now.txt"
     else
         echo -e "$green""$sim_msg1" "$reset"
         for i in "${!target_list[@]}"
@@ -180,7 +179,7 @@ main () {
                     ;;
                 "q")
                     printf "\n%b%s%b\n\n" "$yellow" "$abort_msg" "$reset"
-                    rm -f "$ark_path"*"$now"
+                    rm -f "$ark_path"*"$now.txt"
                     break
                     ;;
                 *) echo invalid response;;
