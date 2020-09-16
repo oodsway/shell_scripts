@@ -8,12 +8,12 @@
 
 #------------------------------------------------------------------------------
 # Change Log
-# 2019-05-02: Refactored. Updated rsync flags, variable names.
+# 2020-05-04: Updated target.
 #------------------------------------------------------------------------------
 
 exclude_list=/home/woods/xlists/x-homesync
 source=/home/woods/
-target=/media/woods/Data/home_sync/
+target=/media/woods/Data/home_knix/
 sim_log=/home/woods/_home-files-to-sync
 
 echo "***** $(date -R) *****" > "$sim_log"
