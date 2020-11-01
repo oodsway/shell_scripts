@@ -31,6 +31,8 @@ return 0
 
 net_check "google" "com"
 net_check "8.8.8" "8"
-net_check "9.9.9" "9" && echo
+net_check "9.9.9" "9"
+net_check "1.1.1" "2"
+net_check "1.0.0" "2" && echo
 net_check "10.0.0" "1" && echo
 net_check "192.168.3" "$(seq 0 254)"
