@@ -9,7 +9,7 @@
 # Change Log
 # 2018-01-23: fork of ping_monet, modified based on the following article:
 # https://www.shellscript.sh/tips/ping/
-# 2020-09-16: removed check of 1.1.1.1
+# 2020-11-01: updates to test list
 #------------------------------------------------------------------------------
 
 clear
