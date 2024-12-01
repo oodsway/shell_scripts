@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2015-05-18
+# Purpose: Performs weekly trim of SSD using anacron.
+# Results appended to /home/woods/trim/trim.log
+
+#------------------------------------------------------------------------------
+# Change Log
+# 2017-07-18: shellcheck verified; multiple echo to Log replaced with {} >> LOG
+# 
+#------------------------------------------------------------------------------
+
+LOG=/home/woods/trim/trim.log
+
+{
+    echo
+    echo "*** $(date -R) ***"
+    fstrim -v /
+    fstrim -v /home/woods
+    
+} >> "$LOG"

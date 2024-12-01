@@ -1,0 +1,72 @@
+#! /usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2017-06-04
+# Creates new tar.gz archive of /home/woods then finds and removes oldest archive.
+# Runs in cron.
+
+#------------------------------------------------------------------------------
+# Change Log
+# 2019-02-28: updated paths to /media/woods/Data/ drive
+#------------------------------------------------------------------------------
+
+ERROR1="Target drive not mounted! Exiting...with error code: 1"
+ERROR2="Exclusion list not found! Exiting...with error code: 2"
+
+if ! (mountpoint -q /media/woods/Data); then
+    printf "\n%s\n\n" "$ERROR1"
+    exit 1
+else
+    _NOW=$(date +%F_%H%M%S)
+    ark_path=/media/woods/Data/home_targzip
+    clean_path=/media/woods/Data/_ark-clean/
+    EXCLUDE_LIST=/home/woods/xlists/x-home_ark    
+
+    if ! [[ -f "$EXCLUDE_LIST" ]]; then
+        printf "\n%s\n\n" "$ERROR2"
+        exit 2
+    fi
+
+    if ! [[ -d "$clean_path" ]]; then
+        mkdir "$clean_path"
+    fi    
+fi
+
+create_new_ark () {
+# Creates archive of home directory by cd to /home/woods then tar with exclusions
+
+    ark_file="$ark_path"/woods-home_"$_NOW".tar.gz
+    cd /home/woods && tar -X "$EXCLUDE_LIST" -czpf "$ark_file" ./*
+
+return 0
+}
+
+remove_oldest_ark () {
+# Determines oldest archive & moves to clean_path for user review.
+
+    clean_file=$(find "$ark_path" -type f | sort | head -1)
+    if [ -f "$clean_file" ]; then
+        mv "$clean_file" "$clean_path"
+    fi
+
+return 0
+}
+
+main () {
+# Calls functions that create a new archive and moves the oldest for later removal.
+
+    create_new_ark &&
+    remove_oldest_ark
+
+return 0
+}
+
+# When number of files in clean_path >= 7, delete them before calling main()
+
+if [[ $( find "$clean_path" -type f  | wc -l ) -ge 7 ]]; then
+    # format by shellcheck https://github.com/koalaman/shellcheck/wiki/SC2038
+    find "$clean_path" -type f  -print0 | xargs -0 rm &&
+    main
+else
+    main
+fi

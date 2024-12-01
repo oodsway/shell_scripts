@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: before 2016-12-01
+# Purpose: Performs virus scan of system (with exclusions) and writes 
+# results to LOG file. Runs in cron: ~$ sudo crontab -l to see schedule.
+#
+#------------------------------------------------------------------------------
+# Change Log
+# 2019-07-16: home-scan path updated
+#------------------------------------------------------------------------------
+
+home-scan () 
+{
+# Performs virus scan of /home and writes results to LOG file.
+    {
+    tail /var/log/clamav/freshclam.log
+    printf '\n\n%s\n' "home-scan started: $(date +%F_%T)"
+    clamscan -ir /home
+    printf '\n%s\n'  "home-scan completed: $(date +%F_%T)"
+    } >> "$LOG" 2>/dev/null
+return 0
+}
+
+root-scan () 
+{
+# Performs virus scan of / (with exclusions) and writes results to LOG file.
+
+    local x_list='^/(cdrom|dev|home|media|mnt|proc|snap|srv|sys)'
+
+    {
+    tail /var/log/clamav/freshclam.log
+    printf '\n\n%s\n' "root-scan started: $(date +%F_%T)"
+    clamscan -ir --exclude-dir="$x_list" /
+    printf '\n%s\n'  "root-scan completed: $(date +%F_%T)"
+    } >> "$LOG" 2>/dev/null
+return 0
+}
+
+LOG=/home/woods/_avscan.txt
+[[ -e "$LOG" ]] && rm -f "$LOG"
+
+dow=$(date +%w)
+dom=$(date +%d)
+
+if [[ "$dow" -eq 0 ]] && [[ "$dom" -le 7 ]]
+then
+    root-scan
+else
+    home-scan
+fi
+chown woods:woods "$LOG"

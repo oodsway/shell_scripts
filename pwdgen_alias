@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2017-03-02
+# Purpose: Generates list of passwords based on user inputs of length and 
+# number passwords. Use as alias in .bashrc
+# Source: http://serverfault.com/questions/283294/how-to-read-in-n-random-characters-from-dev-urandom
+
+# 2017-07-19: changed name to remove conflict with actual pwgen package available through apt.
+
+
+pwgen() { head -c 5000 /dev/urandom | tr -dc 'a-zA-Z0-9~!@#$%^&*_-' | fold -w $1 | head -$2; }; pwgen $1 $2
+
+# Uncomment & add to .bashrc alias
+# alias pwg='pwdgen() { head -c 5000 /dev/urandom | tr -dc '\''a-zA-Z0-9~!@#$%^&*_-'\'' | fold -w $1 | head -$2; }; pwdgen $1 $2'

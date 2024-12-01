@@ -1,0 +1,211 @@
+#! /usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2016-05-03
+# Purpose: Simulates Data drive rsync synchronization then provides 
+# option to perform synchronization. The following rsync flags are used:
+# 
+#     -n -avhiOu = -n -rlptgoD -vhiOu
+# 
+#         -n = --dry-run perform a trial run with no changes made
+#         -a = -rlptgoD
+#             -r = --recursive recurse into directories
+#             -l = --links copy symlinks as symlinks
+#             -p = --perms preserve permissions
+#             -t = --times preserve modification times
+#             -g = --group preserve group
+#             -o = --owmer preserve owner (super-user only)
+#             -D = same as --devices --specials
+#                 --devices preserve device files (super-user only)
+#                 --specials preserve special files
+#         -v = --verbose increase verbosity
+#         -h = --human-readable
+#         -i = --itemize-changes
+#         -O = --omit-dir-times
+#         -u = --update skip files that are newer on the receiver
+# 
+# Sources: http://manpages.ubuntu.com/manpages/bionic/man1/rsync.1.html
+#          https://linux.die.net/man/1/rsync
+#          https://stackoverflow.com/questions/4493525/
+
+#------------------------------------------------------------------------------
+# Change Log
+# 2019-04-29: clean_files writes directly to ark_dir; all logs are .txt
+#------------------------------------------------------------------------------
+
+# Definitions:
+source=/media/woods/Data/
+sync_type=( "rsync --dry-run" "rsync " )
+exclude_list=/home/woods/xlists/x-datasync
+ark_path=/home/woods/backup_log-files/
+ark_dir=/home/woods/backup_log-files/completed/
+
+# Colors:
+red="\033[0;31m"
+green="\033[0;32m"
+yellow="\033[0;33m"
+white="\033[0;37m"
+reset="\033[0m"
+
+# Messages:
+error1="***** Source Drive NOT Mounted! Program terminated with exit code: 1 *****"
+error2="***** Exclusion list not found! Exiting with error code: 2 *****"
+error3="***** Working directory not found! Exiting with error code 3 *****"
+banner1="The following target drives will be compared with the source drive:"
+sim_msg1="Simulation complete. The following drive(s) need to be synchronized:"
+sim_msg2="Simulation complete. Nothing to synchronize. Log files removed."
+sync_msg="Synchronization complete. Log files have been archived."
+abort_msg="***** Process Aborted by User *****"
+
+clean_files () {
+# Function: combines and archives sync log files.
+    
+    cat "$ark_path"*sync* > "$ark_dir""$now""_sync-log.txt"
+    rm -f "$ark_path"*"$now.txt"
+    echo -e "$green""$sync_msg" "$reset"
+
+return 0
+}
+
+sync_control () {
+# Function: simulates or processes rsync synchronization with any drives that may be mounted
+
+    local temp_array=( )
+    local list_len="${#target_list[@]}"
+    
+    # Store a  local copy of target_list in mount_list
+    mount_list=( "${target_list[@]}" )  
+    for i in "${!mount_list[@]}"
+    do
+        target="${mount_list[i]}/"
+        
+        # Build log_filename for log_progress from target path
+        log_filename="$(basename "$target" )_$1_$now.txt"
+        log_progress="$ark_path""${log_filename}"
+        echo "***** $(date -R) *****" > "$log_progress"        
+                
+        # Terminate if source drive not mounted. This is an extra check.              
+        if ! (mountpoint -q "$source")
+        then
+            {
+            printf "\n%b%s%b\n\n"  "$red" "$error1" "$reset"
+            } | tee -a "$log_progress"
+            exit  1
+        # If target drive not mounted, continue but log event.
+        elif ! (mountpoint -q "$target")
+        then
+            {
+            echo -e "$yellow***** Excluded  $target  drive NOT Mounted! *****$reset"
+            printf "\n" 
+            } | tee -a "$log_progress"
+        else
+        
+        ############################# RSYNC BLOCK #############################
+            {
+            echo -e "$green$2 $target with $source $reset"
+            
+            ${sync_type[$3]} -avhiOu --progress --stats --delete \
+            --exclude-from="$exclude_list" "$source" "$target"
+                               
+            printf "\n"
+            } | tee -a "$log_progress"
+        ############################# RSYNC BLOCK #############################
+
+        fi
+        
+        # Examine rsync stats in log_progress for number files created, deleted, and transferred
+        created=$(awk '/Number of created files:/ {print $5}' "$log_progress")
+        deleted=$(awk '/Number of deleted files:/ {print $5}' "$log_progress")       
+        xferred=$(awk '/Number of regular files transferred:/ {print $6}' "$log_progress")
+        
+        # If created, deleted && xferred 0, no sync needed; safely remove the target drive from target_list
+        # Source: https://stackoverflow.com/questions/16860877/remove-an-element-from-a-bash-array
+        if [[ "$created" -eq 0 ]] &&  [[ "$deleted" -eq 0 ]] && [[ "$xferred" -eq 0 ]]
+        then
+            # unset -v option source: http://wiki.bash-hackers.org/commands/builtin/unset
+            # See also Destruction: http://wiki.bash-hackers.org/syntax/arrays?s[]=array
+            unset -v 'target_list[i]'
+        fi
+
+    done
+
+    # Re-index target_list array if greater than zero and shorter than original.
+    if [[ "${#target_list[@]}" -gt 0 ]] && [[ "${#target_list[@]}" -lt "$list_len" ]]
+    then
+        temp_array=( "${target_list[@]}" )
+        unset target_list
+        target_list=( "${temp_array[@]}" )
+        unset temp_array        
+    fi
+    
+return 0
+}
+
+main () {
+# Function: controls program flow.
+
+    clear
+    echo -e "$white""$banner1""$source" "$reset"
+    for i in "${!target_list[@]}"
+    do
+        echo -e "$yellow" "${target_list[i]}" "$reset"
+    done
+    echo
+    
+# sync_control with option 0 == rsync --dry-run (simulate sychronization) 
+    sync_control sim Simulating 0
+    
+    if [[ "${#target_list[@]}" -eq 0 ]]
+    then
+        echo -e "$green""$sim_msg2 $reset"
+        rm -f "$ark_path"*"$now.txt"
+    else
+        echo -e "$green""$sim_msg1" "$reset"
+        for i in "${!target_list[@]}"
+        do
+            echo -e "$yellow" "${target_list[i]}" "$reset"
+        done
+        echo        
+        
+        while true
+        do
+            read -r -p "Enter [YES] to Sync or [q] to Quit: " answer
+            case $answer in
+                "YES")
+# sync_control with option 1 == rsync (perform sychronization)
+                    sync_control sync Synchronizing 1
+                    clean_files 
+                    break
+                    ;;
+                "q")
+                    printf "\n%b%s%b\n\n" "$yellow" "$abort_msg" "$reset"
+                    rm -f "$ark_path"*"$now.txt"
+                    break
+                    ;;
+                *) echo invalid response;;
+            esac
+        done
+    fi
+    
+return 0
+}
+
+# Check failure points before start-up.
+if ! (mountpoint -q "$source")
+then
+    printf "\n%b%s%b\n\n"  "$red" "$error1" "$reset"
+    exit 1
+elif ! [[ -f "$exclude_list" ]]
+then
+    printf "\n%b%s%b\n\n" "$red" "$error2" "$reset"
+    exit 2
+elif ! [[ -d "$ark_path" ]] || ! [[ -d "$ark_dir" ]]
+then
+    printf "\n%b%s%b\n\n" "$red" "$error3" "$reset"
+    exit 3
+else
+    target_list=( $(mount | awk '/\/media\/woods\/Data-/ {print $3}' | sort -u) )
+    now=$(date +%F_%T)
+    main
+fi
+
