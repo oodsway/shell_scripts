@@ -6,11 +6,17 @@
 
 #--------------------------------------------------------------------------------------
 # Change Log
-# 2020-01-03: reset explicit user path since script runs in cron as root.
+# 2025-02-09: Updates to include NvMe drives. Automated drive list in-work.
 #--------------------------------------------------------------------------------------
 
 LOG=/home/woods/SMART/$(date +%F_%H%M%S)_smart-status.txt
-drive_list=( $(sudo fdisk -l | awk '/\/dev\/sd.1/ {print $1}' | sort -u) )
+
+#drive_list=( $(sudo fdisk -l | awk '/\/dev\/sd.1/ {print $1}' | sort -u) )
+#drive_list=( $(sudo blkid | grep -v loop | awk '/\/dev\/sd/ || /\/dev\/nvme/ {print $1}' | sort -u) )
+#drive_list=( "$(lsblk -n -o name,type | grep -w disk | sort -u | awk '$1 ~ /^[a-z]/ {print $1}')" )
+#drive_list=(/dev/sda /dev/sdb /dev/nvme0 /dev/nvme1)
+drive_list=( $(sudo blkid | grep -v loop | awk '{if ($0 ~ /\/dev\/sd/) {print substr($0, 1, 9)} \
+if ($0 ~ /\/dev\/nvme/) {print substr($0, 1, 10)} }' | sort -u) )
 divider="-------------------------------------------------------------------------------------------------"
 
 get_status () {
@@ -35,10 +41,10 @@ get_summary () {
     if [ -e "$smart_sum" ]; then
         rm -f "$smart_sum"
     fi
-    
+
     {
-    awk '/\/dev\/sd|PASSED|Reallocated|Pending|Uncorrectable|Power_On|Wear/ {print $0}
-    /LBAs_Written/ {printf "%s%69.2f%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024/1024, " TiB"}
+    awk '/\/dev\/sd|\/dev\/nvme|Model|Serial|PASSED|Reallocated|Pending|Uncorrectable|Hour|Cycle|Temp|Wear/ {print $0}
+    /LBAs/ {printf "%s%69.2f%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024/1024, " TiB"}
     /Errors|Error Count:/ {printf "%s\n\n", $0}' "$LOG"
     } >> "$smart_sum"
     
