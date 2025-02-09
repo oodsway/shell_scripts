@@ -6,7 +6,7 @@
 
 #--------------------------------------------------------------------------------------
 # Change Log
-# 2025-02-09: Updates to include NvMe drives. Automated drive list in-work.
+# 2025-02-09: Updated to include NvMe drives.
 #--------------------------------------------------------------------------------------
 
 LOG=/home/woods/SMART/$(date +%F_%H%M%S)_smart-status.txt
