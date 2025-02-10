@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2024-11-28
+# Purpose: rsync unifi backups (*.unf) from unifi controller to target.
+# sync pikee self-hosted to pishare/_unifi_backups
+# sync pikee self-hosted to pikee /media/shared/_unifi_backups
+
+# Source: Tom Lawrence (LTS_Tom)  https://forums.lawrencesystems.com/t/our-\
+# unifi-controller-update-process-and-recent-releases-5-10-15-5-10-16-5-10-17/890
+
+push_update()
+{
+
+#sync pikee self-hosted to pishare/_unifi_backups
+
+rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
+-e ssh woods@192.168.3.14:/media/SDshare/_unifi_backups/
+
+# sync pikee self-hosted to pikee /media/shared/_unifi_backups
+
+rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
+/media/shared/_unifi_backups/
+
+}
+
+push_update
