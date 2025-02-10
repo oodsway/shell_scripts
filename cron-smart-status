@@ -6,7 +6,7 @@
 
 #--------------------------------------------------------------------------------------
 # Change Log
-# 2025-02-09: Updated to include NvMe drives.
+# 2025-02-09: Includes NvMe drives; improved method to build drive_list
 #--------------------------------------------------------------------------------------
 
 # Definitions:
@@ -41,7 +41,7 @@ get_summary () {
     fi
 
     {
-    awk '/\/dev\/sd|\/dev\/nvme|Model|Serial|PASSED|Reallocated|Pending|Uncorrectable|Hour|Cycle|Temp|Wear/ {print $0}
+    awk '/\/dev\/sd|\/dev\/nvme|Model|Serial|PASSED|Reallocated|Pending|Uncorrectable|Hour|Cycle|Temp|Wear|Unsafe/ {print $0}
     /LBAs/ {printf "%s%69.2f%s\n", "Total_LBAs_Written:",$10*512/1024/1024/1024/1024, " TiB"}
     /Errors|Error Count:/ {printf "%s\n\n", $0}' "$LOG"
     } >> "$smart_sum"
