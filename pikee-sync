@@ -2,7 +2,9 @@
 
 # Author: Woods Wannamaker
 # Date: 2024-11-28
-# Purpose: rsync unifi backups (*.unf) from unifi controller to target.
+# Deployed at: woodlan
+# System: pikey - a Pi5 / 8 GB RAM running Unifi Network Application
+# Purpose: rsync unifi backups (*.unf) from unifi controller to targets.
 # sync pikee self-hosted to pishare/_unifi_backups
 # sync pikee self-hosted to pikee /media/shared/_unifi_backups
 
