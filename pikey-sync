@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Author: Woods Wannamaker
+# Date: 2024-12-06
+# Deployed at: GRC
+# System: pikey - a Pi5 / 8 GB RAM running Unifi Network Application
+# Purpose: rsync unifi backups (*.unf) from unifi controller to target.
+# sync pikey self-hosted to pikey /media/shared/_unifi_backups
+# runs in cron daily
+
+# Source: Tom Lawrence (LTS_Tom)  https://forums.lawrencesystems.com/t/our-\
+# unifi-controller-update-process-and-recent-releases-5-10-15-5-10-16-5-10-17/890
+
+push_update()
+{
+
+#sync pikey self-hosted to pishare/_unifi_backups
+
+rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
+/media/shared/_unifi_backups/
+
+}
+
+push_update
