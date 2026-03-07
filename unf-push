@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# DEPRECATED
+
 # Author: Woods Wannamaker
 # Date: 2019-02-20
 # Purpose: rsync unifi backups (*.unf) from unitylt controller to kdepc
