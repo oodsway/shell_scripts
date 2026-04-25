@@ -11,18 +11,28 @@
 # Source: Tom Lawrence (LTS_Tom)  https://forums.lawrencesystems.com/t/our-\
 # unifi-controller-update-process-and-recent-releases-5-10-15-5-10-16-5-10-17/890
 
+#------------------------------------------------------------------------------
+# Change Log: 2026-04-25
+# Reorganized flow: local sync first then ssh targets. 
+# Added conditional sync with netcat to target knix via ssh
+#------------------------------------------------------------------------------
+
 push_update()
 {
 
-#sync pikee self-hosted to pishare/_unifi_backups
-
-rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
--e ssh woods@192.168.3.14:/media/SDshare/_unifi_backups/
-
-# sync pikee self-hosted to pikee /media/shared/_unifi_backups
-
+# sync pikee self-hosted to /media/shared/_unifi_backups (local samba share)
 rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
 /media/shared/_unifi_backups/
+
+# sync pikee self-hosted to pishare/_unifi_backups via ssh
+rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
+-e ssh woods@pishare:/media/SDshare/_unifi_backups/
+
+# conditional sync to knix at /media/woods/Data/_unifi_backups via ssh
+if nc -zw 3 knix 22; then
+ rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
+ -e ssh woods@knix:/media/woods/Data/_unifi_backups/
+fi
 
 }
 
