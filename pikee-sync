@@ -15,6 +15,7 @@
 # Change Log: 2026-04-25
 # Reorganized flow: local sync first then ssh targets. 
 # Added conditional sync with netcat to target knix via ssh
+# Added chown at end to fix issue with shared/_unifi_backups owned by unifi
 #------------------------------------------------------------------------------
 
 push_update()
@@ -37,3 +38,6 @@ fi
 }
 
 push_update
+
+chown woods:woods /media/shared/_unifi_backups/
+
