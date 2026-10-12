@@ -2,37 +2,33 @@
 
 # Author: Woods Wannamaker
 # Date: 2024-11-28
-# Deployed at: woodlan
-# System: pikey - a Pi5 / 8 GB RAM running Unifi Network Application
-# Purpose: rsync unifi backups (*.unf) from unifi controller to targets.
-# sync pikee self-hosted to pishare/_unifi_backups
-# sync pikee self-hosted to pikee /media/shared/_unifi_backups
-
-# Source: Tom Lawrence (LTS_Tom)  https://forums.lawrencesystems.com/t/our-\
-# unifi-controller-update-process-and-recent-releases-5-10-15-5-10-16-5-10-17/890
-
+# System: Pi5 running self-hosted Unifi Network Application
+# Purpose: rsync unifi configs (*.unf) from unifi controller to targets
+# Source: https://forums.lawrencesystems.com/
 #------------------------------------------------------------------------------
-# Change Log: 2026-04-25
-# Reorganized flow: local sync first then ssh targets. 
-# Added conditional sync with netcat to target knix via ssh
-# Added chown at end to fix issue with shared/_unifi_backups owned by unifi
+# Change Log: 2026-10-11 post upgrade to ubuntu server 26.04.1 LTS
+# Use of .local hostnames required. Manual confirmation in ssh required 1x
+# Replaced nc test with timeout test for network sync with knix & pishare.
+# Replaced -avrhiO with -rlptDvrhiO which is handled via samba mount on pikee
 #------------------------------------------------------------------------------
 
 push_update()
 {
 
 # sync pikee self-hosted to /media/shared/_unifi_backups (local samba share)
-rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
+rsync -rlptDvrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
 /media/shared/_unifi_backups/
 
-# sync pikee self-hosted to pishare/_unifi_backups via ssh
+# conditional sync to pishare.local/_unifi_backups via ssh
+if timeout 3 bash -c 'cat < /dev/null > /dev/tcp/pishare.local/22' 2>/dev/null; then
 rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
--e ssh woods@pishare:/media/SDshare/_unifi_backups/
+-e ssh woods@pishare.local:/media/SDshare/_unifi_backups/ 2>/dev/null
+fi
 
-# conditional sync to knix at /media/woods/Data/_unifi_backups via ssh
-if nc -zw 3 knix 22; then
- rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
- -e ssh woods@knix:/media/woods/Data/_unifi_backups/
+# conditional sync to knix.local at /media/woods/Data/_unifi_backups via ssh
+if timeout 3 bash -c 'cat < /dev/null > /dev/tcp/knix.local/22' 2>/dev/null; then
+rsync -avrhiO --no-perms --delete --progress --stats /var/lib/unifi/backup/autobackup/ \
+-e ssh woods@knix.local:/media/woods/Data/_unifi_backups/
 fi
 
 }
@@ -40,4 +36,3 @@ fi
 push_update
 
 chown woods:woods /media/shared/_unifi_backups/
-
